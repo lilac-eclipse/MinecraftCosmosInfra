@@ -1,6 +1,7 @@
 package com.lilaceclipse.minecraftcosmos.stack
 
 import software.amazon.awscdk.Duration
+import software.amazon.awscdk.RemovalPolicy
 import software.amazon.awscdk.Stack
 import software.amazon.awscdk.StackProps
 import software.amazon.awscdk.services.apigateway.LambdaIntegration
@@ -10,6 +11,9 @@ import software.amazon.awscdk.services.iam.PolicyStatement
 import software.amazon.awscdk.services.lambda.Code
 import software.amazon.awscdk.services.lambda.Function
 import software.amazon.awscdk.services.lambda.Runtime
+import software.amazon.awscdk.services.s3.Bucket
+import software.amazon.awscdk.services.s3.deployment.BucketDeployment
+import software.amazon.awscdk.services.s3.deployment.Source
 import software.amazon.awscdk.services.ses.actions.Sns
 import software.amazon.awscdk.services.sns.Topic
 import software.amazon.awscdk.services.sns.subscriptions.SmsSubscription
@@ -51,5 +55,16 @@ class MinecraftCosmosStack(
             .addResource("start")
             .addMethod("POST", dealIntegration)
 
+        val siteBucket = Bucket.Builder.create(this, "mccosmos-static-site")
+            .bucketName("mccosmos-static-site")
+            .publicReadAccess(true)
+            .removalPolicy(RemovalPolicy.DESTROY)
+            .websiteIndexDocument("index.html")
+            .build()
+
+        BucketDeployment.Builder.create(this, "deploy-static-site")
+            .sources(listOf(Source.asset("../static-site")))
+            .destinationBucket(siteBucket)
+            .build()
     }
 }
