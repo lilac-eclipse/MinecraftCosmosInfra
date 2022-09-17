@@ -5,8 +5,12 @@
 plugins {
     id("MinecraftCosmosInfra.kotlin-lambda-conventions")
     id("com.github.johnrengelman.shadow") version "7.0.0"
+    kotlin("plugin.serialization")
 }
 
 dependencies {
     implementation("com.amazonaws:aws-lambda-java-core:1.2.1")
+    implementation("com.amazonaws:aws-lambda-java-events:3.11.0")
+    implementation("com.amazonaws:aws-java-sdk-sns:1.12.304")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
 }
