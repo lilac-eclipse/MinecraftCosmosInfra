@@ -8,6 +8,8 @@ import software.amazon.awscdk.StackProps
 import software.amazon.awscdk.services.apigateway.LambdaIntegration
 import software.amazon.awscdk.services.apigateway.RestApi
 import software.amazon.awscdk.services.events.targets.ApiGateway
+import software.amazon.awscdk.services.iam.ManagedPolicy
+import software.amazon.awscdk.services.iam.Policy
 import software.amazon.awscdk.services.iam.PolicyStatement
 import software.amazon.awscdk.services.lambda.Code
 import software.amazon.awscdk.services.lambda.Function
@@ -48,6 +50,10 @@ class MinecraftCosmosStack(
             .build()
         statusAlertTopic.grantPublish(lambdaFunction)
 
+        // TODO remove EC2 full access
+        lambdaFunction.role!!.addManagedPolicy(
+            ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"))
+
         val api = RestApi.Builder.create(this, "cosmos-api-$stageSuffix")
             .restApiName("Cosmos API - $stageSuffix")
             .description("Handle api requests for MC cosmos")
@@ -55,6 +61,7 @@ class MinecraftCosmosStack(
         val templates = mapOf(
             "application/json" to "{ \"statusCode\": \"200\" }"
         )
+        // TODO create separate prod/beta stage that point to separate lambdas
         val dealIntegration = LambdaIntegration.Builder.create(lambdaFunction)
             .requestTemplates(templates)
             .build()
