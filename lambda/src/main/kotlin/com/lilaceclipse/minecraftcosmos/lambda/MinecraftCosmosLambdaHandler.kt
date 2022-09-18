@@ -20,6 +20,12 @@ class MinecraftCosmosLambdaHandler: RequestHandler<Map<String, Any>, APIGatewayP
     private val snsClient: AmazonSNS = AmazonSNSClientBuilder.defaultClient()
 
     override fun handleRequest(input: Map<String, Any>?, context: Context?): APIGatewayProxyResponseEvent {
+        // TODO - achieve parity with current implementation (invoke ec2)
+        //  X setup prod/beta stacks
+        //  deploy prod stack and validate functionality
+        //  deprecate old code/packages + upload this to github
+        //  ===
+        //  setup new fargate/docker implementation
 
         val arn = System.getenv(STATUS_ALERT_TOPIC_ENV_VAR)
         println("using messaging arn $arn")
