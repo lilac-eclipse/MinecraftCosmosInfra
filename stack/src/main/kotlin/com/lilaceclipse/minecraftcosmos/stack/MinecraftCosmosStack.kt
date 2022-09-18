@@ -7,17 +7,17 @@ import software.amazon.awscdk.Stack
 import software.amazon.awscdk.StackProps
 import software.amazon.awscdk.services.apigateway.LambdaIntegration
 import software.amazon.awscdk.services.apigateway.RestApi
-import software.amazon.awscdk.services.events.targets.ApiGateway
+import software.amazon.awscdk.services.ecr.Repository
+import software.amazon.awscdk.services.ecr.RepositoryProps
+import software.amazon.awscdk.services.ecs.*
 import software.amazon.awscdk.services.iam.ManagedPolicy
-import software.amazon.awscdk.services.iam.Policy
-import software.amazon.awscdk.services.iam.PolicyStatement
 import software.amazon.awscdk.services.lambda.Code
 import software.amazon.awscdk.services.lambda.Function
 import software.amazon.awscdk.services.lambda.Runtime
+import software.amazon.awscdk.services.logs.RetentionDays
 import software.amazon.awscdk.services.s3.Bucket
 import software.amazon.awscdk.services.s3.deployment.BucketDeployment
 import software.amazon.awscdk.services.s3.deployment.Source
-
 import software.amazon.awscdk.services.sns.Topic
 import software.constructs.Construct
 
@@ -81,6 +81,28 @@ class MinecraftCosmosStack(
             .destinationBucket(siteBucket)
             .prune(false)
             .build()
+
+
+        Cluster(this, "mc-cosmos-cluster-$stageSuffix", ClusterProps.builder()
+            .build())
+
+        val task = FargateTaskDefinition(this, "mc-cosmos-task-$stageSuffix", FargateTaskDefinitionProps.builder()
+            .memoryLimitMiB(4096)
+            .cpu(1024)
+            .build())
+
+        val repository = Repository(this, "mc-cosmos-repo-$stageSuffix", RepositoryProps.builder()
+            .repositoryName("mc-cosmos-repo-$stageSuffix")
+            .build())
+
+        // TODO set up lifecycle/auto delete
+        task.addContainer("mc-cosmos-task-container-$stageSuffix", ContainerDefinitionOptions.builder()
+            .image(ContainerImage.fromEcrRepository(repository))
+            .logging(LogDriver.awsLogs(AwsLogDriverProps.builder()
+                .streamPrefix("mc-cosmos-ecs-logs")
+                .logRetention(RetentionDays.ONE_MONTH)
+                .build()))
+            .build())
     }
 
     companion object {
