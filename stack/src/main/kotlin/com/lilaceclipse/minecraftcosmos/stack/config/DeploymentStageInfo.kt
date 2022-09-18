@@ -7,12 +7,12 @@ interface DeploymentStageInfo {
 
 class ProdStage(
     override val stageSuffix: String = "prod",
-    override val siteBucketName: String = "mccosmos-static-site"
+    override val siteBucketName: String = "cosmos.cryo3.net"
     ) : DeploymentStageInfo
 
 class BetaStage(
     override val stageSuffix: String = "beta",
-    override val siteBucketName: String = "mccosmos-static-site-beta"
+    override val siteBucketName: String = "beta.cosmos.cryo3.net"
 ) : DeploymentStageInfo
 
 val deploymentStages = listOf(ProdStage(), BetaStage())
