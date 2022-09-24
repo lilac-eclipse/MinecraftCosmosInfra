@@ -7,6 +7,7 @@ import software.amazon.awscdk.Stack
 import software.amazon.awscdk.StackProps
 import software.amazon.awscdk.services.apigateway.LambdaIntegration
 import software.amazon.awscdk.services.apigateway.RestApi
+import software.amazon.awscdk.services.ec2.*
 import software.amazon.awscdk.services.ecr.Repository
 import software.amazon.awscdk.services.ecr.RepositoryProps
 import software.amazon.awscdk.services.ecs.*
@@ -76,6 +77,11 @@ class MinecraftCosmosStack(
             .websiteIndexDocument("index.html")
             .build()
 
+        val serverDataBucket = Bucket.Builder.create(this, "mccosmos-server-data-$stageSuffix")
+            .bucketName(additionalStackProps.stageInfo.serverDataBucketName)
+            .removalPolicy(RemovalPolicy.RETAIN)
+            .build()
+
         BucketDeployment.Builder.create(this, "deploy-static-site-$stageSuffix")
             .sources(listOf(Source.asset("../static-site")))
             .destinationBucket(siteBucket)
@@ -83,13 +89,25 @@ class MinecraftCosmosStack(
             .build()
 
 
+        val vpc = Vpc(this, "mc-cosmos-vpc-$stageSuffix", VpcProps.builder()
+            .maxAzs(1)
+            .cidr("10.0.0.0/16")
+            .build())
+        val securityGroup = SecurityGroup(this, "mc-cosmos-sg-$stageSuffix", SecurityGroupProps.builder()
+            .vpc(vpc)
+            .build())
+        securityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(25565))
+        securityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80)) // TODO disable this (should only be accessible by lambda)
+
         Cluster(this, "mc-cosmos-cluster-$stageSuffix", ClusterProps.builder()
+            .vpc(vpc)
             .build())
 
         val task = FargateTaskDefinition(this, "mc-cosmos-task-$stageSuffix", FargateTaskDefinitionProps.builder()
-            .memoryLimitMiB(4096)
-            .cpu(1024)
+            .memoryLimitMiB(5120)
+            .cpu(2048)
             .build())
+        serverDataBucket.grantReadWrite(task.taskRole)
 
         val repository = Repository(this, "mc-cosmos-repo-$stageSuffix", RepositoryProps.builder()
             .repositoryName("mc-cosmos-repo-$stageSuffix")
@@ -100,8 +118,17 @@ class MinecraftCosmosStack(
             .image(ContainerImage.fromEcrRepository(repository))
             .logging(LogDriver.awsLogs(AwsLogDriverProps.builder()
                 .streamPrefix("mc-cosmos-ecs-logs")
-                .logRetention(RetentionDays.ONE_MONTH)
+                .logRetention(RetentionDays.ONE_WEEK)
                 .build()))
+            .portMappings(listOf(
+                PortMapping.builder()
+                    .containerPort(25565)
+                    .hostPort(25565)
+                    .build(),
+                PortMapping.builder()
+                    .containerPort(80)
+                    .hostPort(80)
+                    .build()))
             .build())
     }
 
