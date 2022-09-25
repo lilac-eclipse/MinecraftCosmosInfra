@@ -67,7 +67,7 @@ class MinecraftCosmosStack(
             .requestTemplates(templates)
             .build()
         api.root
-            .addResource("start")
+//            .addResource("start")
             .addMethod("POST", dealIntegration)
 
         val siteBucket = Bucket.Builder.create(this, "mccosmos-static-site-$stageSuffix")
@@ -91,6 +91,12 @@ class MinecraftCosmosStack(
 
         val vpc = Vpc(this, "mc-cosmos-vpc-$stageSuffix", VpcProps.builder()
             .maxAzs(1)
+            .natGateways(0)
+            .subnetConfiguration(listOf(SubnetConfiguration.builder()
+                .name("mc-cosmos-public-subnet-$stageSuffix")
+                .subnetType(SubnetType.PUBLIC)
+                .mapPublicIpOnLaunch(true)
+                .build()))
             .cidr("10.0.0.0/16")
             .build())
         val securityGroup = SecurityGroup(this, "mc-cosmos-sg-$stageSuffix", SecurityGroupProps.builder()

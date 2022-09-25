@@ -6,6 +6,29 @@
     <title>Minecraft Cosmos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script>
+        const cosmosApiEndpoint = "https://zph2treonh.execute-api.us-west-1.amazonaws.com/prod/";
+        $( document ).ready(function() {
+            $.post( cosmosApiEndpoint, JSON.stringify(
+                {
+                    "requestType": "STATUS"
+                }))
+                .done(function( data ) {
+                    var text = "Cosmos Status: ";
+                    if (data.status === "RUNNING") {
+                        text += "Running @ " + data.ip
+                    } else if (data.status === "STARTING") {
+                        text += "Cosmos is starting, check back soon c:"
+                    } else if (data.status === "STOPPED") {
+                        text += "Cosmos is stopped, go ahead and start it!"
+                    } else {
+                        text += "Unknown"
+                    }
+                    $("#cosmos-status").text(text)
+            });
+        });
+    </script>
 </head>
 <body>
 
@@ -13,10 +36,11 @@
     <div class="px-4 py-5 my-5 text-center">
         <img class="d-block mx-auto mb-4" src="logo.png" alt="" width="100" height="100">
         <h1 class="display-5 fw-bold">Welcome to Minecraft Cosmos!</h1>
+        <h1 class="display-6" id="cosmos-status">Cosmos Status: Loading...</h1>
         <div class="col-lg-6 mx-auto">
             <p class="lead mb-4">Here you can start the cosmos server or download the mods needed.</p>
             <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                <form action="https://zph2treonh.execute-api.us-west-1.amazonaws.com/prod/start" method="POST">
+                <form id="start-server-form" action="https://ivqlfwix99.execute-api.us-west-1.amazonaws.com/prod/" method="POST">
                     <div>
                         <button type="submit" class="btn btn-primary btn-lg px-4 gap-3">Start server</button>
                     </div>
@@ -54,5 +78,18 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8"
         crossorigin="anonymous"></script>
+<script>
+    $("#start-server-form").submit(function(e) {
+        e.preventDefault();
+
+        $.post( cosmosApiEndpoint, JSON.stringify(
+            {
+                "requestType": "START"
+            }))
+            .done(function( data ) {
+                alert(data.message)
+            });
+    });
+</script>
 </body>
 </html>

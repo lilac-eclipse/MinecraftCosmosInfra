@@ -10,6 +10,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.amazonaws.services.sns.AmazonSNS
 import com.amazonaws.services.sns.AmazonSNSClientBuilder
 import com.amazonaws.services.sns.model.PublishRequest
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -27,13 +28,34 @@ class MinecraftCosmosLambdaHandler: RequestHandler<Map<String, Any>, APIGatewayP
     private val ec2Client: AmazonEC2 = AmazonEC2ClientBuilder.defaultClient()
     private val smsAlertTopicArn = System.getenv(STATUS_ALERT_TOPIC_ENV_VAR)
 
-    override fun handleRequest(input: Map<String, Any>?, context: Context?): APIGatewayProxyResponseEvent {
-        // TODO:
-        //  deploy prod stack and validate functionality
-        //  deprecate old code/packages + upload this to github
-        //  ===
-        //  setup new fargate/docker implementation
+    override fun handleRequest(input: Map<String, Any>, context: Context): APIGatewayProxyResponseEvent {
+        var requestBody: Map<String, String>? = null
+        try {
+            requestBody = Json.decodeFromString(input["body"] as String)
+        } catch (e: Exception) {
+            println("Failed to decode input body from: ${input["body"]}")
+        }
 
+        return if (requestBody?.get("requestType") == "STATUS") {
+            handleStatusRequest(requestBody)
+        } else if (requestBody?.get("requestType") == "START") {
+            handleStartRequest(requestBody)
+        } else {
+            println(input)
+            generateResponse(mapOf(
+                "message" to "Request type not supported"
+            ))
+        }
+    }
+
+    private fun handleStatusRequest(requestBody: Map<String, String>) : APIGatewayProxyResponseEvent {
+        return generateResponse(mapOf(
+            "status" to "RUNNING",
+            "ip" to "10.23.1.421"
+        ))
+    }
+
+    private fun handleStartRequest(requestBody: Map<String, String>) : APIGatewayProxyResponseEvent {
         val instance = ec2Client.describeInstances(
             DescribeInstancesRequest()
                 .withInstanceIds(EC2_INSTANCE_ID))
@@ -42,20 +64,25 @@ class MinecraftCosmosLambdaHandler: RequestHandler<Map<String, Any>, APIGatewayP
 
         return if (listOf("pending", "running").contains(instance.state.name)) {
             println("Received request to start service, but it was already running")
-            generateSuccessResponse("Cosmos was already started :)")
+            generateResponse(mapOf(
+                "message" to "Cosmos was already started :)"
+            ))
         } else {
             println("Received request to start service, will now attempt to start")
-            startServiceAndReturnResponse()
+            startEc2InstanceAndReturnResponse()
         }
     }
 
-    private fun startServiceAndReturnResponse() : APIGatewayProxyResponseEvent {
+    private fun startEc2InstanceAndReturnResponse() : APIGatewayProxyResponseEvent {
         ec2Client.startInstances(StartInstancesRequest()
             .withInstanceIds(EC2_INSTANCE_ID))
 
         sendSmsAlert("Cosmos has started! Join at mc.cryo3.net")
-        return generateSuccessResponse("Started cosmos! Automated messaging is currently unavailable, " +
-                "please alert people accordingly :)")
+        return generateResponse(
+            mapOf(
+            "message" to "Started cosmos! Automated messaging is currently unavailable, " +
+                    "please alert people accordingly :)")
+        )
     }
 
     private fun sendSmsAlert(message: String) {
@@ -71,13 +98,14 @@ class MinecraftCosmosLambdaHandler: RequestHandler<Map<String, Any>, APIGatewayP
         }
     }
 
-    private fun generateSuccessResponse(message: String) : APIGatewayProxyResponseEvent {
-        val responseBody = Json.encodeToString(mapOf(
-            "message" to message
-        ))
+    private fun generateResponse(responseMap: Map<String, String>, statusCode: Int = 200) : APIGatewayProxyResponseEvent {
+        val responseBody = Json.encodeToString(responseMap)
 
         return APIGatewayProxyResponseEvent()
-            .withStatusCode(200)
+            .withStatusCode(statusCode)
+            .withHeaders(mapOf(
+                "Access-Control-Allow-Origin" to "*" // TODO properly restrict
+            ))
             .withIsBase64Encoded(false)
             .withBody(responseBody)
     }
