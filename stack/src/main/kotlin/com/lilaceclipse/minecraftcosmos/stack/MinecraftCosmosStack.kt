@@ -121,7 +121,6 @@ class MinecraftCosmosStack(
             .build())
 
         // TODO set up lifecycle/auto delete
-        // TODO add health check to container
         task.addContainer("mc-cosmos-task-container-$stageSuffix", ContainerDefinitionOptions.builder()
             .image(ContainerImage.fromEcrRepository(repository))
             .logging(LogDriver.awsLogs(AwsLogDriverProps.builder()
@@ -137,6 +136,12 @@ class MinecraftCosmosStack(
                     .containerPort(80)
                     .hostPort(80)
                     .build()))
+            .healthCheck(HealthCheck.builder()
+                .command(listOf("CMD-SHELL", "curl -f http://localhost/health || exit 1"))
+                .interval(Duration.minutes(1))
+                .startPeriod(Duration.seconds(30))
+                .timeout(Duration.seconds(5))
+                .build())
             .build())
 
         lambdaFunction.addEnvironment("CLUSTER_ARN", cluster.clusterArn)
