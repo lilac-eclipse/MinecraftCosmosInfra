@@ -51,9 +51,11 @@ class MinecraftCosmosStack(
             .build()
         statusAlertTopic.grantPublish(lambdaFunction)
 
-        // TODO remove EC2 full access
+        // TODO remove full access
         lambdaFunction.role!!.addManagedPolicy(
             ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"))
+        lambdaFunction.role!!.addManagedPolicy(
+            ManagedPolicy.fromAwsManagedPolicyName("AmazonECS_FullAccess"))
 
         val api = RestApi.Builder.create(this, "cosmos-api-$stageSuffix")
             .restApiName("Cosmos API - $stageSuffix")
@@ -67,7 +69,6 @@ class MinecraftCosmosStack(
             .requestTemplates(templates)
             .build()
         api.root
-//            .addResource("start")
             .addMethod("POST", dealIntegration)
 
         val siteBucket = Bucket.Builder.create(this, "mccosmos-static-site-$stageSuffix")
@@ -105,7 +106,7 @@ class MinecraftCosmosStack(
         securityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(25565))
         securityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80)) // TODO disable this (should only be accessible by lambda)
 
-        Cluster(this, "mc-cosmos-cluster-$stageSuffix", ClusterProps.builder()
+        val cluster = Cluster(this, "mc-cosmos-cluster-$stageSuffix", ClusterProps.builder()
             .vpc(vpc)
             .build())
 
@@ -120,6 +121,7 @@ class MinecraftCosmosStack(
             .build())
 
         // TODO set up lifecycle/auto delete
+        // TODO add health check to container
         task.addContainer("mc-cosmos-task-container-$stageSuffix", ContainerDefinitionOptions.builder()
             .image(ContainerImage.fromEcrRepository(repository))
             .logging(LogDriver.awsLogs(AwsLogDriverProps.builder()
@@ -136,6 +138,11 @@ class MinecraftCosmosStack(
                     .hostPort(80)
                     .build()))
             .build())
+
+        lambdaFunction.addEnvironment("CLUSTER_ARN", cluster.clusterArn)
+        lambdaFunction.addEnvironment("TASK_DEFINITION_ARN", task.taskDefinitionArn)
+        lambdaFunction.addEnvironment("SECURITY_GROUP_ID", securityGroup.securityGroupId)
+        lambdaFunction.addEnvironment("SUBNET_ID", vpc.publicSubnets[0].subnetId)
     }
 
     companion object {

@@ -21,8 +21,14 @@
                     } else if (data.status === "STARTING") {
                         text += "Cosmos is starting, check back soon c:"
                     } else if (data.status === "STOPPED") {
-                        text += "Cosmos is stopped, go ahead and start it!"
-                    } else {
+                        text += "Stopped"
+                        $("#start-server-button")
+                            .prop("disabled", false)
+                            .addClass("btn-primary")
+                            .removeClass("btn-secondary")
+                    } else if (data.status === "ERROR") {
+                        text = "Cosmos is in a bad state, please contact the owner"
+                    }else {
                         text += "Unknown"
                     }
                     $("#cosmos-status").text(text)
@@ -42,12 +48,13 @@
             <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
                 <form id="start-server-form" action="https://ivqlfwix99.execute-api.us-west-1.amazonaws.com/prod/" method="POST">
                     <div>
-                        <button type="submit" class="btn btn-primary btn-lg px-4 gap-3">Start server</button>
+                        <button type="submit" id="start-server-button" class="btn btn-secondary btn-lg px-4 gap-3" disabled>Start server</button>
                     </div>
                 </form>
 
+                <!-- TODO move to ajax request -->
                 <form method="get" action="/mccosmos-installer.zip">
-                    <button type="submit" class="btn btn-outline-secondary btn-lg px-4" data-bs-toggle="modal"
+                    <button type="submit" class="btn btn-outline-primary btn-lg px-4" data-bs-toggle="modal"
                             data-bs-target="#modDownloadModal">Download mods
                     </button>
                 </form>
@@ -81,13 +88,19 @@
 <script>
     $("#start-server-form").submit(function(e) {
         e.preventDefault();
+        $("#start-server-button")
+            .prop("disabled", true)
+            .addClass("btn-secondary")
+            .removeClass("btn-primary")
 
         $.post( cosmosApiEndpoint, JSON.stringify(
             {
                 "requestType": "START"
             }))
             .done(function( data ) {
+
                 alert(data.message)
+                location.reload()
             });
     });
 </script>
