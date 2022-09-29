@@ -80,6 +80,7 @@ class MinecraftCosmosStack(
 
         val serverDataBucket = Bucket.Builder.create(this, "mccosmos-server-data-$stageSuffix")
             .bucketName(additionalStackProps.stageInfo.serverDataBucketName)
+            .versioned(true)
             .removalPolicy(RemovalPolicy.RETAIN)
             .build()
 
@@ -111,7 +112,7 @@ class MinecraftCosmosStack(
             .build())
 
         val task = FargateTaskDefinition(this, "mc-cosmos-task-$stageSuffix", FargateTaskDefinitionProps.builder()
-            .memoryLimitMiB(5120)
+            .memoryLimitMiB(8192)
             .cpu(2048)
             .build())
         serverDataBucket.grantReadWrite(task.taskRole)
