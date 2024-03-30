@@ -10,7 +10,7 @@ fun main() {
 
     val environment = Environment.builder()
         .account("252475162445")
-        .region("us-west-1")
+        .region("us-west-2")
         .build()
 
     for (stage in deploymentStages) {

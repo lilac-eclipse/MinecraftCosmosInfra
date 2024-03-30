@@ -16,7 +16,9 @@ import software.amazon.awscdk.services.lambda.Code
 import software.amazon.awscdk.services.lambda.Function
 import software.amazon.awscdk.services.lambda.Runtime
 import software.amazon.awscdk.services.logs.RetentionDays
+import software.amazon.awscdk.services.s3.BlockPublicAccess
 import software.amazon.awscdk.services.s3.Bucket
+import software.amazon.awscdk.services.s3.ObjectOwnership
 import software.amazon.awscdk.services.s3.deployment.BucketDeployment
 import software.amazon.awscdk.services.s3.deployment.Source
 import software.amazon.awscdk.services.sns.Topic
@@ -37,7 +39,7 @@ class MinecraftCosmosStack(
 
         val statusAlertTopic = Topic(this, "statusAlertTopic-$stageSuffix")
 
-        val lambdaFunction = Function.Builder.create(this, "MinecraftCosmosLambda-$stageSuffix")
+        val lambdaFunction = Function.Builder.create(this, "mc-cosmos-lambda-$stageSuffix")
             .functionName("MinecraftCosmos-$stageSuffix")
             .code(Code.fromAsset("../lambda/build/libs/lambda-all.jar"))
             .handler("com.lilaceclipse.minecraftcosmos.lambda.MinecraftCosmosLambdaHandler")
@@ -57,7 +59,7 @@ class MinecraftCosmosStack(
         lambdaFunction.role!!.addManagedPolicy(
             ManagedPolicy.fromAwsManagedPolicyName("AmazonECS_FullAccess"))
 
-        val api = RestApi.Builder.create(this, "cosmos-api-$stageSuffix")
+        val api = RestApi.Builder.create(this, "mc-cosmos-api-$stageSuffix")
             .restApiName("Cosmos API - $stageSuffix")
             .description("Handle api requests for MC cosmos")
             .build()
@@ -71,14 +73,22 @@ class MinecraftCosmosStack(
         api.root
             .addMethod("POST", dealIntegration)
 
-        val siteBucket = Bucket.Builder.create(this, "mccosmos-static-site-$stageSuffix")
+        val siteBucket = Bucket.Builder.create(this, "mc-cosmos-static-site-$stageSuffix")
             .bucketName(additionalStackProps.stageInfo.siteBucketName)
             .publicReadAccess(true)
+            // See this issue for why this enables public access: https://github.com/aws/aws-cdk/issues/25983
+            .blockPublicAccess(BlockPublicAccess.Builder.create()
+                .blockPublicAcls(false)
+                .blockPublicPolicy(false)
+                .ignorePublicAcls(false)
+                .restrictPublicBuckets(false)
+                .build())
+            .objectOwnership(ObjectOwnership.OBJECT_WRITER)
             .removalPolicy(RemovalPolicy.DESTROY)
             .websiteIndexDocument("index.html")
             .build()
 
-        val serverDataBucket = Bucket.Builder.create(this, "mccosmos-server-data-$stageSuffix")
+        val serverDataBucket = Bucket.Builder.create(this, "mc-cosmos-data-$stageSuffix")
             .bucketName(additionalStackProps.stageInfo.serverDataBucketName)
             .versioned(true)
             .removalPolicy(RemovalPolicy.RETAIN)
