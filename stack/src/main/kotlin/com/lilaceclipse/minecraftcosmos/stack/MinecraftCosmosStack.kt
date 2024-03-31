@@ -35,12 +35,20 @@ class MinecraftCosmosStack(
     scope: Construct, id: String, props: StackProps, additionalStackProps: MinecraftCosmosStackProps
 ) : Stack(scope, id, props) {
 
+    private val stageSuffix = additionalStackProps.stageInfo.stageSuffix
     init {
+        val lambdaFunction = createLambdaFunction()
+        val eventNotificationTopic = createEventNotificationTopic(lambdaFunction)
+        val api = createApiGateway(lambdaFunction)
+        val siteBucket = createSiteBucket(additionalStackProps, api)
+        val serverDataBucket = createServerDataBucket(additionalStackProps)
+        val (vpc, securityGroup) = createVpcAndSecurityGroup()
+        val cluster = createEcsCluster(vpc)
+        val (task, repository) = createTaskDefinition(serverDataBucket)
+        configureLambdaEnvVars(lambdaFunction, cluster, task, securityGroup, vpc, eventNotificationTopic)
+    }
 
-        val stageSuffix = additionalStackProps.stageInfo.stageSuffix
-
-        val statusAlertTopic = Topic(this, "statusAlertTopic-$stageSuffix")
-
+    private fun createLambdaFunction(): Function {
         val lambdaFunction = Function.Builder.create(this, "mc-cosmos-lambda-$stageSuffix")
             .functionName("MinecraftCosmos-$stageSuffix")
             .code(Code.fromAsset("../lambda/build/libs/lambda-all.jar"))
@@ -49,32 +57,41 @@ class MinecraftCosmosStack(
             .memorySize(1024)
             .timeout(Duration.seconds(30))
             .runtime(Runtime.JAVA_11)
-            .environment(mapOf(
-                "STATUS_ALERT_TOPIC_ARN" to statusAlertTopic.topicArn
-            ))
             .build()
-        statusAlertTopic.grantPublish(lambdaFunction)
 
         // TODO remove full access
-        lambdaFunction.role!!.addManagedPolicy(
-            ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"))
-        lambdaFunction.role!!.addManagedPolicy(
-            ManagedPolicy.fromAwsManagedPolicyName("AmazonECS_FullAccess"))
+        lambdaFunction.role!!.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"))
+        lambdaFunction.role!!.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AmazonECS_FullAccess"))
 
+        return lambdaFunction
+    }
+
+    private fun createEventNotificationTopic(lambdaFunction: Function): Topic {
+        val eventNotificationTopic = Topic(this, "statusAlertTopic-$stageSuffix")
+        eventNotificationTopic.grantPublish(lambdaFunction)
+
+        return eventNotificationTopic
+    }
+
+    private fun createApiGateway(lambdaFunction: Function): RestApi {
         val api = RestApi.Builder.create(this, "mc-cosmos-api-$stageSuffix")
             .restApiName("Cosmos API - $stageSuffix")
-            .description("Handle api requests for MC cosmos")
+            .description("Handle API requests for MC Cosmos")
             .build()
+
         val templates = mapOf(
             "application/json" to "{ \"statusCode\": \"200\" }"
         )
-        // TODO create separate prod/beta stage that point to separate lambdas
-        val dealIntegration = LambdaIntegration.Builder.create(lambdaFunction)
+        val lambdaIntegration = LambdaIntegration.Builder.create(lambdaFunction)
             .requestTemplates(templates)
             .build()
-        api.root
-            .addMethod("POST", dealIntegration)
 
+        api.root.addMethod("POST", lambdaIntegration)
+
+        return api
+    }
+
+    private fun createSiteBucket(additionalStackProps: MinecraftCosmosStackProps, api: RestApi): Bucket {
         val siteBucket = Bucket.Builder.create(this, "mc-cosmos-static-site-$stageSuffix")
             .bucketName(additionalStackProps.stageInfo.siteBucketName)
             .publicReadAccess(true)
@@ -90,15 +107,8 @@ class MinecraftCosmosStack(
             .websiteIndexDocument("index.html")
             .build()
 
-        val serverDataBucket = Bucket.Builder.create(this, "mc-cosmos-data-$stageSuffix")
-            .bucketName(additionalStackProps.stageInfo.serverDataBucketName)
-            .versioned(true)
-            .removalPolicy(RemovalPolicy.RETAIN)
-            .build()
-
-        // Update config files
-        val configFileName = "site-config/config-template-${additionalStackProps.stageInfo.stageSuffix}.json"
-        val configFile = File(configFileName)
+        // Load site config file template and populate with data from CDK
+        val configFile = File("site-config/config-template-${additionalStackProps.stageInfo.stageSuffix}.json")
         val config = jacksonObjectMapper().readValue(configFile, Map::class.java).toMutableMap()
         config["cosmosApiEndpoint"] = api.url
 
@@ -110,7 +120,21 @@ class MinecraftCosmosStack(
             .prune(false)
             .build()
 
+        return siteBucket
+    }
 
+    private fun createServerDataBucket(additionalStackProps: MinecraftCosmosStackProps): Bucket {
+
+        val serverDataBucket = Bucket.Builder.create(this, "mc-cosmos-data-$stageSuffix")
+            .bucketName(additionalStackProps.stageInfo.serverDataBucketName)
+            .versioned(true)
+            .removalPolicy(RemovalPolicy.RETAIN)
+            .build()
+
+        return serverDataBucket
+    }
+
+    private fun createVpcAndSecurityGroup(): Pair<Vpc, SecurityGroup> {
         val vpc = Vpc(this, "mc-cosmos-vpc-$stageSuffix", VpcProps.builder()
             .maxAzs(1)
             .natGateways(0)
@@ -124,17 +148,26 @@ class MinecraftCosmosStack(
         val securityGroup = SecurityGroup(this, "mc-cosmos-sg-$stageSuffix", SecurityGroupProps.builder()
             .vpc(vpc)
             .build())
+
         securityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(25565))
         securityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80)) // TODO disable this (should only be accessible by lambda)
 
-        val cluster = Cluster(this, "mc-cosmos-cluster-$stageSuffix", ClusterProps.builder()
+        return Pair(vpc, securityGroup)
+    }
+
+    private fun createEcsCluster(vpc: Vpc): Cluster {
+        return Cluster(this, "mc-cosmos-cluster-$stageSuffix", ClusterProps.builder()
             .vpc(vpc)
             .build())
+    }
 
-        val task = FargateTaskDefinition(this, "mc-cosmos-task-$stageSuffix", FargateTaskDefinitionProps.builder()
-            .memoryLimitMiB(8192)
-            .cpu(2048)
-            .build())
+    private fun createTaskDefinition(serverDataBucket: Bucket): Pair<FargateTaskDefinition, Repository> {
+        val task = FargateTaskDefinition(this, "mc-cosmos-task-$stageSuffix",
+            FargateTaskDefinitionProps.builder()
+                .memoryLimitMiB(8192)
+                .cpu(2048)
+                .build()
+        )
         serverDataBucket.grantReadWrite(task.taskRole)
 
         val repository = Repository(this, "mc-cosmos-repo-$stageSuffix", RepositoryProps.builder()
@@ -165,10 +198,22 @@ class MinecraftCosmosStack(
                 .build())
             .build())
 
+        return Pair(task, repository)
+    }
+
+    private fun configureLambdaEnvVars(
+        lambdaFunction: Function,
+        cluster: Cluster,
+        task: FargateTaskDefinition,
+        securityGroup: SecurityGroup,
+        vpc: Vpc,
+        eventNotificationTopic: Topic
+    ) {
         lambdaFunction.addEnvironment("CLUSTER_ARN", cluster.clusterArn)
         lambdaFunction.addEnvironment("TASK_DEFINITION_ARN", task.taskDefinitionArn)
         lambdaFunction.addEnvironment("SECURITY_GROUP_ID", securityGroup.securityGroupId)
         lambdaFunction.addEnvironment("SUBNET_ID", vpc.publicSubnets[0].subnetId)
+        lambdaFunction.addEnvironment("STATUS_ALERT_TOPIC_ARN", eventNotificationTopic.topicArn)
     }
 
     companion object {
