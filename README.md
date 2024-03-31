@@ -35,3 +35,8 @@ When done testing, perform the following to save costs:
 ```
 cdk destroy MinecraftCosmosStack-beta
 ```
+
+## Troubleshooting
+### Could not create output directory cdk.out (EEXIST: file already exists, mkdir '...\MinecraftCosmos\MinecraftCosmosInfra\cdk.out')
+
+recreate the symlink with `mklink /D cdk.out stack\cdk.out`
