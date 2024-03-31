@@ -1,5 +1,9 @@
 /*
- * This file contains the shared dependencies
+ * This file defines a custom plugin that encapsulates common build configuration and conventions
+ * for Kotlin projects in the MinecraftCosmos infrastructure.
+ * It applies the Kotlin JVM plugin, sets up the maven-central repository,
+ * and includes common dependencies such as kotlin-stdlib-jdk8 and JUnit for testing.
+ * Subprojects can apply this plugin to inherit the shared build configuration.
  */
 
 plugins {
