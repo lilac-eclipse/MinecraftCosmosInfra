@@ -1,5 +1,6 @@
 package com.lilaceclipse.minecraftcosmos.stack
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.lilaceclipse.minecraftcosmos.stack.config.DeploymentStageInfo
 import software.amazon.awscdk.Duration
 import software.amazon.awscdk.RemovalPolicy
@@ -23,6 +24,7 @@ import software.amazon.awscdk.services.s3.deployment.BucketDeployment
 import software.amazon.awscdk.services.s3.deployment.Source
 import software.amazon.awscdk.services.sns.Topic
 import software.constructs.Construct
+import java.io.File
 
 
 data class MinecraftCosmosStackProps(
@@ -94,8 +96,16 @@ class MinecraftCosmosStack(
             .removalPolicy(RemovalPolicy.RETAIN)
             .build()
 
+        // Update config files
+        val configFileName = "site-config/config-${additionalStackProps.stageInfo.stageSuffix}.json"
+        val configFile = File(configFileName)
+        val config = jacksonObjectMapper().readValue(configFile, Map::class.java).toMutableMap()
+        config["cosmosApiEndpoint"] = api.url
+
         BucketDeployment.Builder.create(this, "deploy-static-site-$stageSuffix")
-            .sources(listOf(Source.asset("../static-site")))
+            .sources(listOf(
+                Source.asset("../static-site"),
+                Source.jsonData("config.json", config)))
             .destinationBucket(siteBucket)
             .prune(false)
             .build()

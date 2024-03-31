@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     implementation("software.amazon.awscdk:aws-cdk-lib:2.134.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.0")
 }
 
 application {
