@@ -16,6 +16,8 @@ import software.amazon.awscdk.services.iam.ManagedPolicy
 import software.amazon.awscdk.services.lambda.Code
 import software.amazon.awscdk.services.lambda.Function
 import software.amazon.awscdk.services.lambda.Runtime
+import software.amazon.awscdk.services.logs.LogGroup
+import software.amazon.awscdk.services.logs.LogGroupProps
 import software.amazon.awscdk.services.logs.RetentionDays
 import software.amazon.awscdk.services.s3.BlockPublicAccess
 import software.amazon.awscdk.services.s3.Bucket
@@ -174,12 +176,17 @@ class MinecraftCosmosStack(
             .repositoryName("mc-cosmos-repo-$stageSuffix")
             .build())
 
+        val logGroup = LogGroup(this, "mc-cosmos-ecs-logs-$stageSuffix", LogGroupProps.builder()
+            .logGroupName("mc-cosmos-ecs-logs-$stageSuffix")
+            .retention(RetentionDays.ONE_WEEK)
+            .build())
+
         // TODO set up lifecycle/auto delete
         task.addContainer("mc-cosmos-task-container-$stageSuffix", ContainerDefinitionOptions.builder()
             .image(ContainerImage.fromEcrRepository(repository))
             .logging(LogDriver.awsLogs(AwsLogDriverProps.builder()
-                .streamPrefix("mc-cosmos-ecs-logs")
-                .logRetention(RetentionDays.ONE_WEEK)
+                .logGroup(logGroup)
+                .streamPrefix("mc-cosmos-ecs-container-logs")
                 .build()))
             .portMappings(listOf(
                 PortMapping.builder()
