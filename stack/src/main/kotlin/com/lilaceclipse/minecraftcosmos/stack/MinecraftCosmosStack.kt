@@ -97,7 +97,7 @@ class MinecraftCosmosStack(
             .build()
 
         // Update config files
-        val configFileName = "site-config/config-${additionalStackProps.stageInfo.stageSuffix}.json"
+        val configFileName = "site-config/config-template-${additionalStackProps.stageInfo.stageSuffix}.json"
         val configFile = File(configFileName)
         val config = jacksonObjectMapper().readValue(configFile, Map::class.java).toMutableMap()
         config["cosmosApiEndpoint"] = api.url
