@@ -116,7 +116,7 @@ class MinecraftCosmosLambdaHandler: RequestHandler<Map<String, Any>, APIGatewayP
                         .withSubnets(subnetId)))
             ecsClient.runTask(runTaskRequest)
 
-            sendSmsAlert("Cosmos has started! Check cosmos.cryo3.net for the server IP")
+            sendSmsAlert("Cosmos has started! Check cosmos.lilaceclipse.com for the server IP")
             return generateResponse(mapOf(
                 "message" to "Cosmos will now start, refresh the page shortly to get the IP address! " +
                         "Automated messaging is currently unavailable, please alert people accordingly :)"
