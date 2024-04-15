@@ -10,6 +10,7 @@ import software.amazon.awscdk.services.apigateway.LambdaIntegration
 import software.amazon.awscdk.services.apigateway.RestApi
 import software.amazon.awscdk.services.dynamodb.*
 import software.amazon.awscdk.services.ec2.*
+import software.amazon.awscdk.services.ecr.LifecycleRule
 import software.amazon.awscdk.services.ecr.Repository
 import software.amazon.awscdk.services.ecr.RepositoryProps
 import software.amazon.awscdk.services.ecs.*
@@ -204,6 +205,13 @@ class MinecraftCosmosStack(
 
         val repository = Repository(this, "mc-cosmos-repo-$stageSuffix", RepositoryProps.builder()
             .repositoryName("mc-cosmos-repo-$stageSuffix")
+            .lifecycleRules(listOf(
+                LifecycleRule.builder()
+                    .rulePriority(1)
+                    .description("Keep only the latest image")
+                    .maxImageCount(1)
+                    .build()
+            ))
             .build())
 
         val logGroup = LogGroup(this, "mc-cosmos-ecs-logs-$stageSuffix", LogGroupProps.builder()
@@ -211,7 +219,6 @@ class MinecraftCosmosStack(
             .retention(RetentionDays.ONE_WEEK)
             .build())
 
-        // TODO set up lifecycle/auto delete
         task.addContainer("mc-cosmos-task-container-$stageSuffix", ContainerDefinitionOptions.builder()
             .containerName("cosmos-container")
             .image(ContainerImage.fromEcrRepository(repository))
