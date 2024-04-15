@@ -27,6 +27,7 @@ class MinecraftCosmosLambdaHandler: RequestHandler<Map<String, Any>, APIGatewayP
     private val ec2Client: AmazonEC2 = AmazonEC2ClientBuilder.defaultClient()
     private val ecsClient: AmazonECS = AmazonECSClientBuilder.defaultClient()
 
+    private val stage = System.getenv("STAGE")
     private val smsAlertTopicArn = System.getenv("STATUS_ALERT_TOPIC_ARN")
     private val clusterArn = System.getenv("CLUSTER_ARN")
     private val taskDefinitionArn = System.getenv("TASK_DEFINITION_ARN")
@@ -114,14 +115,20 @@ class MinecraftCosmosLambdaHandler: RequestHandler<Map<String, Any>, APIGatewayP
                         .withAssignPublicIp(AssignPublicIp.ENABLED)
                         .withSecurityGroups(securityGroupId)
                         .withSubnets(subnetId)))
+                .withOverrides(TaskOverride()
+                    .withContainerOverrides(ContainerOverride()
+                        .withName("cosmos-container")
+                        .withCommand(
+                            "--environment", stage,
+                            "--target-server", "154216e6-dca2-4e3c-8cd5-3ad1fbd5a45a")))
             ecsClient.runTask(runTaskRequest)
 
             sendSmsAlert("Cosmos has started! Check cosmos.lilaceclipse.com for the server IP")
             return generateResponse(mapOf(
-                "message" to "Cosmos will now start, refresh the page shortly to get the IP address! " +
-                        "Automated messaging is currently unavailable, please alert people accordingly :)"
+                "message" to "Cosmos will now start, refresh the page shortly to get the IP address!"
             ))
         } catch (e: Exception) {
+            e.printStackTrace()
             return generateResponse(mapOf(
                 "message" to "Something went wrong..."
             ))

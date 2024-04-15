@@ -213,6 +213,7 @@ class MinecraftCosmosStack(
 
         // TODO set up lifecycle/auto delete
         task.addContainer("mc-cosmos-task-container-$stageSuffix", ContainerDefinitionOptions.builder()
+            .containerName("cosmos-container")
             .image(ContainerImage.fromEcrRepository(repository))
             .logging(LogDriver.awsLogs(AwsLogDriverProps.builder()
                 .logGroup(logGroup)
@@ -254,7 +255,8 @@ class MinecraftCosmosStack(
             "SECURITY_GROUP_ID" to securityGroup.securityGroupId,
             "SUBNET_ID" to vpc.publicSubnets[0].subnetId,
             "STATUS_ALERT_TOPIC_ARN" to eventNotificationTopic.topicArn,
-            "SERVER_TABLE_NAME" to serverTable.tableName
+            "SERVER_TABLE_NAME" to serverTable.tableName,
+            "STAGE" to stageInfo.stageSuffix
         )
 
         envVars.forEach { (key, value) ->
