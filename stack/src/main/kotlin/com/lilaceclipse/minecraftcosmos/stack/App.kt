@@ -20,6 +20,7 @@ fun main() {
             "${MinecraftCosmosStack.STACK_NAME}-${stage.stageSuffix}",
             StackProps.builder()
                 .env(environment)
+                .terminationProtection(true)
                 .build(),
             MinecraftCosmosStackProps(stageInfo = stage)
         )

@@ -8,14 +8,18 @@ import software.amazon.awscdk.Stack
 import software.amazon.awscdk.StackProps
 import software.amazon.awscdk.services.apigateway.LambdaIntegration
 import software.amazon.awscdk.services.apigateway.RestApi
+import software.amazon.awscdk.services.dynamodb.*
 import software.amazon.awscdk.services.ec2.*
 import software.amazon.awscdk.services.ecr.Repository
 import software.amazon.awscdk.services.ecr.RepositoryProps
 import software.amazon.awscdk.services.ecs.*
 import software.amazon.awscdk.services.iam.ManagedPolicy
+import software.amazon.awscdk.services.lambda.Alias
+import software.amazon.awscdk.services.lambda.AliasProps
 import software.amazon.awscdk.services.lambda.Code
 import software.amazon.awscdk.services.lambda.Function
 import software.amazon.awscdk.services.lambda.Runtime
+import software.amazon.awscdk.services.lambda.SnapStartConf
 import software.amazon.awscdk.services.logs.LogGroup
 import software.amazon.awscdk.services.logs.LogGroupProps
 import software.amazon.awscdk.services.logs.RetentionDays
@@ -37,35 +41,44 @@ class MinecraftCosmosStack(
     scope: Construct, id: String, props: StackProps, additionalStackProps: MinecraftCosmosStackProps
 ) : Stack(scope, id, props) {
 
+    private val stageInfo = additionalStackProps.stageInfo
     private val stageSuffix = additionalStackProps.stageInfo.stageSuffix
     init {
-        val lambdaFunction = createLambdaFunction()
+        val (lambdaFunction, lambdaVersion) = createLambdaFunction()
         val eventNotificationTopic = createEventNotificationTopic(lambdaFunction)
-        val api = createApiGateway(lambdaFunction)
-        val siteBucket = createSiteBucket(additionalStackProps, api)
-        val serverDataBucket = createServerDataBucket(additionalStackProps)
+        val serverTable = createDynamoDbTable()
+        val api = createApiGateway(lambdaVersion)
+        val siteBucket = createSiteBucket(api)
+        val serverDataBucket = createServerDataBucket()
         val (vpc, securityGroup) = createVpcAndSecurityGroup()
         val cluster = createEcsCluster(vpc)
         val (task, repository) = createTaskDefinition(serverDataBucket)
-        configureLambdaEnvVars(lambdaFunction, cluster, task, securityGroup, vpc, eventNotificationTopic)
+        configureLambdaEnvVars(lambdaFunction, cluster, task, securityGroup, vpc, eventNotificationTopic, serverTable)
     }
 
-    private fun createLambdaFunction(): Function {
+    private fun createLambdaFunction(): Pair<Function, Alias> {
         val lambdaFunction = Function.Builder.create(this, "mc-cosmos-lambda-$stageSuffix")
             .functionName("MinecraftCosmos-$stageSuffix")
             .code(Code.fromAsset("../lambda/build/libs/lambda-all.jar"))
             .handler("com.lilaceclipse.minecraftcosmos.lambda.MinecraftCosmosLambdaHandler")
-            .timeout(Duration.seconds(5))
+            .runtime(Runtime.JAVA_11)
             .memorySize(1024)
             .timeout(Duration.seconds(30))
-            .runtime(Runtime.JAVA_11)
+            .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS)
             .build()
+
+        val lambdaAlias = Alias(this, "mc-cosmos-lambda-alias-$stageSuffix", AliasProps.builder()
+            .aliasName("mc-cosmos-lambda-alias-$stageSuffix")
+            // Pointing this to currentVersion will cause a version to be created, which will in turn enable snapstart
+            // This process takes several minutes, so we only enable it in prod
+            .version(if (stageInfo.isProd) lambdaFunction.currentVersion else lambdaFunction.latestVersion)
+            .build())
 
         // TODO remove full access
         lambdaFunction.role!!.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"))
         lambdaFunction.role!!.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AmazonECS_FullAccess"))
 
-        return lambdaFunction
+        return Pair(lambdaFunction, lambdaAlias)
     }
 
     private fun createEventNotificationTopic(lambdaFunction: Function): Topic {
@@ -75,7 +88,24 @@ class MinecraftCosmosStack(
         return eventNotificationTopic
     }
 
-    private fun createApiGateway(lambdaFunction: Function): RestApi {
+    private fun createDynamoDbTable(): TableV2 {
+        val serverTable = TableV2.Builder.create(this, "cosmos-server-table-$stageSuffix")
+            .tableName("CosmosServers-$stageSuffix")
+            .partitionKey(Attribute.builder()
+                .name("ServerId")
+                .type(AttributeType.STRING)
+                .build())
+            .sortKey(Attribute.builder()
+                .name("ServerState") // (e.g., "Active", "Archived")
+                .type(AttributeType.STRING)
+                .build())
+            .deletionProtection(true)
+            .build()
+
+        return serverTable
+    }
+
+    private fun createApiGateway(lambdaAlias: Alias): RestApi {
         val api = RestApi.Builder.create(this, "mc-cosmos-api-$stageSuffix")
             .restApiName("Cosmos API - $stageSuffix")
             .description("Handle API requests for MC Cosmos")
@@ -84,7 +114,7 @@ class MinecraftCosmosStack(
         val templates = mapOf(
             "application/json" to "{ \"statusCode\": \"200\" }"
         )
-        val lambdaIntegration = LambdaIntegration.Builder.create(lambdaFunction)
+        val lambdaIntegration = LambdaIntegration.Builder.create(lambdaAlias)
             .requestTemplates(templates)
             .build()
 
@@ -93,9 +123,9 @@ class MinecraftCosmosStack(
         return api
     }
 
-    private fun createSiteBucket(additionalStackProps: MinecraftCosmosStackProps, api: RestApi): Bucket {
+    private fun createSiteBucket(api: RestApi): Bucket {
         val siteBucket = Bucket.Builder.create(this, "mc-cosmos-static-site-$stageSuffix")
-            .bucketName(additionalStackProps.stageInfo.siteBucketName)
+            .bucketName(stageInfo.siteBucketName)
             .publicReadAccess(true)
             // See this issue for why this enables public access: https://github.com/aws/aws-cdk/issues/25983
             .blockPublicAccess(BlockPublicAccess.Builder.create()
@@ -110,7 +140,7 @@ class MinecraftCosmosStack(
             .build()
 
         // Load site config file template and populate with data from CDK
-        val configFile = File("site-config/config-template-${additionalStackProps.stageInfo.stageSuffix}.json")
+        val configFile = File("site-config/config-template-$stageSuffix.json")
         val config = jacksonObjectMapper().readValue(configFile, Map::class.java).toMutableMap()
         config["cosmosApiEndpoint"] = api.url
 
@@ -125,10 +155,10 @@ class MinecraftCosmosStack(
         return siteBucket
     }
 
-    private fun createServerDataBucket(additionalStackProps: MinecraftCosmosStackProps): Bucket {
+    private fun createServerDataBucket(): Bucket {
 
         val serverDataBucket = Bucket.Builder.create(this, "mc-cosmos-data-$stageSuffix")
-            .bucketName(additionalStackProps.stageInfo.serverDataBucketName)
+            .bucketName(stageInfo.serverDataBucketName)
             .versioned(true)
             .removalPolicy(RemovalPolicy.RETAIN)
             .build()
@@ -214,13 +244,22 @@ class MinecraftCosmosStack(
         task: FargateTaskDefinition,
         securityGroup: SecurityGroup,
         vpc: Vpc,
-        eventNotificationTopic: Topic
+        eventNotificationTopic: Topic,
+        serverTable: TableV2
     ) {
-        lambdaFunction.addEnvironment("CLUSTER_ARN", cluster.clusterArn)
-        lambdaFunction.addEnvironment("TASK_DEFINITION_ARN", task.taskDefinitionArn)
-        lambdaFunction.addEnvironment("SECURITY_GROUP_ID", securityGroup.securityGroupId)
-        lambdaFunction.addEnvironment("SUBNET_ID", vpc.publicSubnets[0].subnetId)
-        lambdaFunction.addEnvironment("STATUS_ALERT_TOPIC_ARN", eventNotificationTopic.topicArn)
+
+        val envVars = mapOf(
+            "CLUSTER_ARN" to cluster.clusterArn,
+            "TASK_DEFINITION_ARN" to task.taskDefinitionArn,
+            "SECURITY_GROUP_ID" to securityGroup.securityGroupId,
+            "SUBNET_ID" to vpc.publicSubnets[0].subnetId,
+            "STATUS_ALERT_TOPIC_ARN" to eventNotificationTopic.topicArn,
+            "SERVER_TABLE_NAME" to serverTable.tableName
+        )
+
+        envVars.forEach { (key, value) ->
+            lambdaFunction.addEnvironment(key, value)
+        }
     }
 
     companion object {
