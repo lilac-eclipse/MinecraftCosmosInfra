@@ -53,7 +53,7 @@ class MinecraftCosmosStack(
         val serverDataBucket = createServerDataBucket()
         val (vpc, securityGroup) = createVpcAndSecurityGroup()
         val cluster = createEcsCluster(vpc)
-        val (task, repository) = createTaskDefinition(serverDataBucket)
+        val (task, repository) = createTaskDefinition(serverDataBucket, serverTable)
         configureLambdaEnvVars(lambdaFunction, cluster, task, securityGroup, vpc, eventNotificationTopic, serverTable)
     }
 
@@ -93,11 +93,7 @@ class MinecraftCosmosStack(
         val serverTable = TableV2.Builder.create(this, "cosmos-server-table-$stageSuffix")
             .tableName("CosmosServers-$stageSuffix")
             .partitionKey(Attribute.builder()
-                .name("ServerId")
-                .type(AttributeType.STRING)
-                .build())
-            .sortKey(Attribute.builder()
-                .name("ServerState") // (e.g., "Active", "Archived")
+                .name("serverId")
                 .type(AttributeType.STRING)
                 .build())
             .deletionProtection(true)
@@ -194,7 +190,7 @@ class MinecraftCosmosStack(
             .build())
     }
 
-    private fun createTaskDefinition(serverDataBucket: Bucket): Pair<FargateTaskDefinition, Repository> {
+    private fun createTaskDefinition(serverDataBucket: Bucket, serverTable: TableV2): Pair<FargateTaskDefinition, Repository> {
         val task = FargateTaskDefinition(this, "mc-cosmos-task-$stageSuffix",
             FargateTaskDefinitionProps.builder()
                 .memoryLimitMiB(8192)
@@ -202,6 +198,7 @@ class MinecraftCosmosStack(
                 .build()
         )
         serverDataBucket.grantReadWrite(task.taskRole)
+        serverTable.grantFullAccess(task.taskRole)
 
         val repository = Repository(this, "mc-cosmos-repo-$stageSuffix", RepositoryProps.builder()
             .repositoryName("mc-cosmos-repo-$stageSuffix")
