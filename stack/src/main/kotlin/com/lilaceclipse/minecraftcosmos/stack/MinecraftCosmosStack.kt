@@ -10,7 +10,6 @@ import software.amazon.awscdk.services.apigateway.LambdaIntegration
 import software.amazon.awscdk.services.apigateway.RestApi
 import software.amazon.awscdk.services.dynamodb.*
 import software.amazon.awscdk.services.ec2.*
-import software.amazon.awscdk.services.ecr.LifecycleRule
 import software.amazon.awscdk.services.ecr.Repository
 import software.amazon.awscdk.services.ecr.RepositoryProps
 import software.amazon.awscdk.services.ecs.*
@@ -32,6 +31,8 @@ import software.amazon.awscdk.services.s3.deployment.Source
 import software.amazon.awscdk.services.sns.Topic
 import software.constructs.Construct
 import java.io.File
+import software.amazon.awscdk.services.ecr.LifecycleRule as EcrLifecycleRule
+import software.amazon.awscdk.services.s3.LifecycleRule as S3LifecycleRule
 
 
 data class MinecraftCosmosStackProps(
@@ -158,6 +159,12 @@ class MinecraftCosmosStack(
             .bucketName(stageInfo.serverDataBucketName)
             .versioned(true)
             .removalPolicy(RemovalPolicy.RETAIN)
+            .lifecycleRules(listOf(
+                S3LifecycleRule.Builder()
+                    .noncurrentVersionExpiration(Duration.days(30))
+                    .noncurrentVersionsToRetain(5)
+                    .build()
+            ))
             .build()
 
         return serverDataBucket
@@ -203,7 +210,7 @@ class MinecraftCosmosStack(
         val repository = Repository(this, "mc-cosmos-repo-$stageSuffix", RepositoryProps.builder()
             .repositoryName("mc-cosmos-repo-$stageSuffix")
             .lifecycleRules(listOf(
-                LifecycleRule.builder()
+                EcrLifecycleRule.builder()
                     .rulePriority(1)
                     .description("Keep only the latest image")
                     .maxImageCount(1)
