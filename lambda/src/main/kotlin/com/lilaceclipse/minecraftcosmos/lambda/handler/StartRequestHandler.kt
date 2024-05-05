@@ -5,8 +5,10 @@ import com.amazonaws.services.ecs.model.*
 import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosRequest.StartRequest
 import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosResponse
 import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosResponse.StartResponse
+import com.lilaceclipse.minecraftcosmos.lambda.model.OnlineStatus
+import com.lilaceclipse.minecraftcosmos.lambda.model.ServerEntry
+import com.lilaceclipse.minecraftcosmos.lambda.storage.DynamoStorage
 import com.lilaceclipse.minecraftcosmos.lambda.util.EnvVarProvider
-import com.lilaceclipse.minecraftcosmos.lambda.util.ResponseUtil
 import com.lilaceclipse.minecraftcosmos.lambda.util.SnsUtil
 import mu.KotlinLogging
 import javax.inject.Inject
@@ -14,7 +16,7 @@ import javax.inject.Inject
 
 class StartRequestHandler @Inject constructor(
     private val envVarProvider: EnvVarProvider,
-    private val responseUtil: ResponseUtil,
+    private val dynamoStorage: DynamoStorage,
     private val ecsClient: AmazonECS,
     private val snsUtil: SnsUtil
 ) {
@@ -47,6 +49,10 @@ class StartRequestHandler @Inject constructor(
 
         ecsClient.runTask(runTaskRequest)
         snsUtil.sendSmsAlert("Cosmos has started! Check cosmos.lilaceclipse.com for the server IP")
+        dynamoStorage.updateServerEntryNonNulls(ServerEntry(
+            serverId = request.serverUUID,
+            onlineStatus = OnlineStatus.CONTAINER_LAUNCHED
+        ))
 
         return StartResponse(
             message = "Cosmos will now start, refresh the page shortly to get the IP address!"

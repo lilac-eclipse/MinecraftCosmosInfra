@@ -19,6 +19,8 @@ data class ServerEntry(
     var serverState: ServerState? = null, // "Active" or "Archived"
     @get:DynamoDbConvertedBy(OnlineStatusConverter::class)
     var onlineStatus: OnlineStatus? = null, // "Online" or "Offline"
+    var ipAddress: String? = null,
+    var lastKnownAliveTime: Long? = null,
     var s3KeySuffix: String? = null, // S3 location of server files
     var launchCommand: String? = null // Launch command
 )

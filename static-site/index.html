@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Minecraft Cosmos</title>
-    <link rel="icon" type="image/png" href="logo.png" sizes="16x16">
     <link rel="icon" type="image/png" href="logo.png" sizes="32x32">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
@@ -18,7 +17,6 @@
         <h1 class="display-5 fw-bold">Welcome to Minecraft Cosmos!</h1>
         <h1 class="display-6" id="cosmos-status">Cosmos Status: Loading...</h1>
         <div class="col-lg-6 mx-auto">
-            <p class="lead mb-4">Here you can start the cosmos server or download the mods needed.</p>
             <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
                 <form id="start-server-form" method="POST">
                     <div>
@@ -33,6 +31,25 @@
                     </button>
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Server Name</th>
+                    <th scope="col">Online State</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="server-table-body">
+                <!-- Server rows will be dynamically added here -->
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -95,36 +112,53 @@
                 }
                 $("#cosmos-status").text(text)
             });
-        $.post( cosmosApiEndpoint, JSON.stringify(
+        $.post(cosmosApiEndpoint, JSON.stringify(
             {
                 "requestType": "SERVERS"
             }))
-            .done(function( data ) {
-                console.log(data)
+            .done(function(data) {
+                const servers = data.servers;
+                const tableBody = $("#server-table-body");
+
+                servers.forEach(function(server) {
+                    const row = $("<tr>");
+                    const nameCell = $("<td>").text(server.serverName);
+                    const onlineCell = $("<td>");
+
+                    // Check if ipAddress and lastKnownAliveTime are populated
+                    if (server.ipAddress && server.lastKnownAliveTime) {
+                        const ipAddress = server.ipAddress;
+                        const lastKnownAliveTime = server.lastKnownAliveTime;
+                        onlineCell.html(`${server.onlineStatus}<br>IP: ${ipAddress}<br>Last Alive: ${lastKnownAliveTime}`);
+                    } else {
+                        onlineCell.text(server.onlineStatus);
+                    }
+
+                    const actionCell = $("<td>");
+
+                    const actionButton = $("<button>")
+                        .addClass("btn btn-primary")
+                        .text("Start Server")
+                        .data("server-id", server.serverId)
+                        .click(function() {
+                            const serverId = $(this).data("server-id");
+                            $.post(cosmosApiEndpoint, JSON.stringify(
+                                {
+                                    "requestType": "START",
+                                    "serverUUID": serverId
+                                }))
+                                .done(function(data) {
+                                    alert(data.message);
+                                });
+                        });
+
+                    actionCell.append(actionButton);
+                    row.append(nameCell, onlineCell, actionCell);
+                    tableBody.append(row);
+                });
             });
     });
 
-    // ---------------
-    // Other functions
-    // ---------------
-    $("#start-server-form").submit(function(e) {
-        e.preventDefault();
-        $("#start-server-button")
-            .prop("disabled", true)
-            .addClass("btn-secondary")
-            .removeClass("btn-primary")
-
-        $.post( cosmosApiEndpoint, JSON.stringify(
-            {
-                "requestType": "START",
-                "serverUUID": "154216e6-dca2-4e3c-8cd5-3ad1fbd5a45a"
-            }))
-            .done(function( data ) {
-
-                alert(data.message)
-                location.reload()
-            });
-    });
 </script>
 </body>
 </html>

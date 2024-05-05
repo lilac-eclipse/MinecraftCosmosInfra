@@ -9,13 +9,14 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import javax.inject.Inject
 
 
 class DynamoStorage @Inject constructor(
-    enhancedClient: DynamoDbEnhancedClient,
-    envVarProvider: EnvVarProvider
+    private val enhancedClient: DynamoDbEnhancedClient,
+    private val envVarProvider: EnvVarProvider
 ) {
 
     private val log = KotlinLogging.logger {}
@@ -47,5 +48,20 @@ class DynamoStorage @Inject constructor(
         val serverEntries = results.flatMap { page -> page.items() }
 
         return serverEntries
+    }
+
+    fun updateServerEntryNonNulls(serverEntry: ServerEntry) {
+        val updateItemRequest = UpdateItemEnhancedRequest.builder(ServerEntry::class.java)
+            .item(serverEntry)
+            .ignoreNulls(true)
+            .build()
+
+        try {
+            serverTable.updateItem(updateItemRequest)
+            log.info { "Updated server entry $serverEntry" }
+        } catch (e: Exception) {
+            log.error(e) { "Failed to update server entry for request $serverEntry" }
+            throw e
+        }
     }
 }
