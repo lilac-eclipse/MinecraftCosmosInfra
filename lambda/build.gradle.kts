@@ -28,6 +28,10 @@ dependencies {
     // Dagger for dependency injection
     implementation("com.google.dagger:dagger:2.51.1")
     kapt("com.google.dagger:dagger-compiler:2.51.1")
+
+    // Logging libraries
+    implementation("io.github.microutils:kotlin-logging:2.1.23")
+    implementation("org.slf4j:slf4j-simple:1.7.30")
 }
 
 kapt {

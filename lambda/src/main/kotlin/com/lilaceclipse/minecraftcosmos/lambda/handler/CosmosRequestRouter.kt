@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosRequest
 import com.lilaceclipse.minecraftcosmos.lambda.util.RequestUtil
 import com.lilaceclipse.minecraftcosmos.lambda.util.ResponseUtil
+import mu.KotlinLogging
 import javax.inject.Inject
 
 class CosmosRequestRouter @Inject constructor(
@@ -14,8 +15,10 @@ class CosmosRequestRouter @Inject constructor(
     private val responseUtil: ResponseUtil
 ) {
 
+    private val log = KotlinLogging.logger {}
+
     fun handleRequest(input: Map<String, Any>): APIGatewayProxyResponseEvent {
-        println("Received Request")
+        log.info { "Received Request" }
         val requestBody = input["body"] as? String
         val cosmosRequest = requestBody?.let { requestUtil.parseRequest(it) }
 
@@ -27,7 +30,7 @@ class CosmosRequestRouter @Inject constructor(
                 startRequestHandler.handleRequest(cosmosRequest)
             }
             else -> {
-                println(input)
+                log.info { input }
                 responseUtil.generateResponse(mapOf(
                     "message" to "Invalid request body or unsupported request type"
                 ))

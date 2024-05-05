@@ -7,6 +7,7 @@ import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosRequest.StartRequest
 import com.lilaceclipse.minecraftcosmos.lambda.util.EnvVarProvider
 import com.lilaceclipse.minecraftcosmos.lambda.util.ResponseUtil
 import com.lilaceclipse.minecraftcosmos.lambda.util.SnsUtil
+import mu.KotlinLogging
 import javax.inject.Inject
 
 
@@ -16,17 +17,18 @@ class StartRequestHandler @Inject constructor(
     private val ecsClient: AmazonECS,
     private val snsUtil: SnsUtil
 ) {
+    private val log = KotlinLogging.logger {}
 
     fun handleRequest(request: StartRequest): APIGatewayProxyResponseEvent {
         try {
             if (listActiveTasks().taskArns.size != 0) {
-                println("Received request to start service, but it was already running")
+                log.info { "Received request to start service, but it was already running" }
                 return responseUtil.generateResponse(mapOf(
                     "message" to "Cosmos is already started!"
                 ))
             }
 
-            println("Received request to start service, will now attempt to start")
+            log.info { "Received request to start service, will now attempt to start" }
             val runTaskRequest = RunTaskRequest()
                 .withLaunchType(LaunchType.FARGATE)
                 .withTaskDefinition(envVarProvider.taskDefinitionArn)

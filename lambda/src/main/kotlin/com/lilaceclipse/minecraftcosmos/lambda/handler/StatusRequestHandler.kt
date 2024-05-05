@@ -10,6 +10,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosRequest.StatusRequest
 import com.lilaceclipse.minecraftcosmos.lambda.util.EnvVarProvider
 import com.lilaceclipse.minecraftcosmos.lambda.util.ResponseUtil
+import mu.KotlinLogging
 import javax.inject.Inject
 
 class StatusRequestHandler @Inject constructor(
@@ -18,16 +19,17 @@ class StatusRequestHandler @Inject constructor(
     private val ecsClient: AmazonECS,
     private val ec2Client: AmazonEC2
 ) {
+    private val log = KotlinLogging.logger {}
 
     fun handleRequest(request: StatusRequest): APIGatewayProxyResponseEvent {
         // This code assumes only one task
         var status: String // RUNNING, STARTING, STOPPED, ERROR
         var ip = ""
         try {
-            println("Fetching active tasks")
+            log.info { "Fetching active tasks" }
             val listTaskResult = listActiveTasks()
 
-            println("Determining status")
+            log.info { "Determining status" }
             when (listTaskResult.taskArns.size) {
                 0 -> {
                     status = "STOPPED"
@@ -58,7 +60,7 @@ class StatusRequestHandler @Inject constructor(
             ip = ""
         }
 
-        println("Response Handled")
+        log.info { "Response Handled" }
         return responseUtil.generateResponse(mapOf(
             "status" to status,
             "ip" to ip
