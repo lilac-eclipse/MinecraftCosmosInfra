@@ -23,7 +23,9 @@ class StartRequestHandler @Inject constructor(
     private val log = KotlinLogging.logger {}
 
     fun handleRequest(request: StartRequest): CosmosResponse {
-        if (listActiveTasks().taskArns.size != 0) {
+        val serverEntry = dynamoStorage.getServerEntryFromDb(request.serverUUID)
+
+        if (serverEntry.onlineStatus != OnlineStatus.OFFLINE) {
             log.info { "Received request to start service, but it was already running" }
             return StartResponse(
                 message = "Cosmos is already started!"
@@ -57,11 +59,5 @@ class StartRequestHandler @Inject constructor(
         return StartResponse(
             message = "Cosmos will now start, refresh the page shortly to get the IP address!"
         )
-    }
-
-    private fun listActiveTasks(): ListTasksResult {
-        return ecsClient.listTasks(
-            ListTasksRequest()
-            .withCluster(envVarProvider.clusterArn))
     }
 }

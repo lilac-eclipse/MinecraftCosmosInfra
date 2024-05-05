@@ -54,7 +54,7 @@ class MinecraftCosmosStack(
         val serverDataBucket = createServerDataBucket()
         val (vpc, securityGroup) = createVpcAndSecurityGroup()
         val cluster = createEcsCluster(vpc)
-        val (task, repository) = createTaskDefinition(serverDataBucket, serverTable)
+        val (task, repository) = createTaskDefinition(serverDataBucket, serverTable, cluster)
         configureLambdaEnvVars(lambdaFunction, cluster, task, securityGroup, vpc, eventNotificationTopic, serverTable)
     }
 
@@ -198,7 +198,7 @@ class MinecraftCosmosStack(
             .build())
     }
 
-    private fun createTaskDefinition(serverDataBucket: Bucket, serverTable: TableV2): Pair<FargateTaskDefinition, Repository> {
+    private fun createTaskDefinition(serverDataBucket: Bucket, serverTable: TableV2, cluster: Cluster): Pair<FargateTaskDefinition, Repository> {
         val task = FargateTaskDefinition(this, "mc-cosmos-task-$stageSuffix",
             FargateTaskDefinitionProps.builder()
                 .memoryLimitMiB(8192)
@@ -207,6 +207,7 @@ class MinecraftCosmosStack(
         )
         serverDataBucket.grantReadWrite(task.taskRole)
         serverTable.grantFullAccess(task.taskRole)
+        task.taskRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AmazonECS_FullAccess"))
 
         val repository = Repository(this, "mc-cosmos-repo-$stageSuffix", RepositoryProps.builder()
             .repositoryName("mc-cosmos-repo-$stageSuffix")
