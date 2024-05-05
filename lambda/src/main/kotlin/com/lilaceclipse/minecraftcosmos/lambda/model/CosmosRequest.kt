@@ -11,9 +11,14 @@ import kotlinx.serialization.json.JsonClassDiscriminator
 sealed class CosmosRequest {
     @Serializable
     @SerialName("STATUS")
-    data class StatusRequest(val requestType: String = "STATUS") : CosmosRequest()
+    data class StatusRequest(
+        val requestType: String
+    ) : CosmosRequest()
 
     @Serializable
     @SerialName("START")
-    data class StartRequest(val requestType: String = "START", val serverUUID: String) : CosmosRequest()
+    data class StartRequest(
+        val requestType: String,
+        val serverUUID: String
+    ) : CosmosRequest()
 }

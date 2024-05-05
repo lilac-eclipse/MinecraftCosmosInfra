@@ -1,8 +1,10 @@
 package com.lilaceclipse.minecraftcosmos.lambda.handler
 
-import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosRequest
+import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosResponse
+import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosResponse.ClientErrorResponse
+import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosResponse.ServerErrorResponse
 import com.lilaceclipse.minecraftcosmos.lambda.util.RequestUtil
 import com.lilaceclipse.minecraftcosmos.lambda.util.ResponseUtil
 import mu.KotlinLogging
@@ -18,24 +20,31 @@ class CosmosRequestRouter @Inject constructor(
     private val log = KotlinLogging.logger {}
 
     fun handleRequest(input: Map<String, Any>): APIGatewayProxyResponseEvent {
-        log.info { "Received Request" }
-        val requestBody = input["body"] as? String
-        val cosmosRequest = requestBody?.let { requestUtil.parseRequest(it) }
+        log.info { "Request received" }
+        val requestBody = input["body"] as String
 
-        return when (cosmosRequest) {
-            is CosmosRequest.StatusRequest -> {
-                statusRequestHandler.handleRequest(cosmosRequest)
+        val response = try {
+            val cosmosRequest = requestUtil.parseRequest(requestBody)
+            when (cosmosRequest) {
+                is CosmosRequest.StatusRequest -> {
+                    statusRequestHandler.handleRequest(cosmosRequest)
+                }
+                is CosmosRequest.StartRequest -> {
+                    startRequestHandler.handleRequest(cosmosRequest)
+                }
             }
-            is CosmosRequest.StartRequest -> {
-                startRequestHandler.handleRequest(cosmosRequest)
-            }
-            else -> {
-                log.info { input }
-                responseUtil.generateResponse(mapOf(
-                    "message" to "Invalid request body or unsupported request type"
-                ))
-            }
+        } catch (e: IllegalArgumentException) {
+            log.error { "Malformed request body" }
+            e.printStackTrace()
+            ClientErrorResponse("Malformed request body")
+        } catch (e: Exception) {
+            log.error { "An unknown error occurred" }
+            e.printStackTrace()
+            ServerErrorResponse("Something went wrong on server side... Please notify us :D")
         }
+
+        log.info { "Request handled" }
+        return responseUtil.generateResponse(response)
     }
 
 }
