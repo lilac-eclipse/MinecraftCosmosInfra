@@ -13,6 +13,7 @@ import javax.inject.Inject
 class CosmosRequestRouter @Inject constructor(
     private val statusRequestHandler: StatusRequestHandler,
     private val startRequestHandler: StartRequestHandler,
+    private val activeServerRequestHandler: ActiveServerRequestHandler,
     private val requestUtil: RequestUtil,
     private val responseUtil: ResponseUtil
 ) {
@@ -20,7 +21,7 @@ class CosmosRequestRouter @Inject constructor(
     private val log = KotlinLogging.logger {}
 
     fun handleRequest(input: Map<String, Any>): APIGatewayProxyResponseEvent {
-        log.info { "Request received" }
+        log.info { "Request received: $input" }
         val requestBody = input["body"] as String
 
         val response = try {
@@ -31,6 +32,9 @@ class CosmosRequestRouter @Inject constructor(
                 }
                 is CosmosRequest.StartRequest -> {
                     startRequestHandler.handleRequest(cosmosRequest)
+                }
+                is CosmosRequest.ActiveServerRequest -> {
+                    activeServerRequestHandler.handleRequest(cosmosRequest)
                 }
             }
         } catch (e: IllegalArgumentException) {

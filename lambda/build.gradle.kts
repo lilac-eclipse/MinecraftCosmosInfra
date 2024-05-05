@@ -20,10 +20,13 @@ plugins {
 dependencies {
     implementation("com.amazonaws:aws-lambda-java-core:1.2.3")
     implementation("com.amazonaws:aws-lambda-java-events:3.11.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    // AWS client dependencies
     implementation("com.amazonaws:aws-java-sdk-sns:1.12.691")
     implementation("com.amazonaws:aws-java-sdk-ec2:1.12.691")
     implementation("com.amazonaws:aws-java-sdk-ecs:1.12.691")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("software.amazon.awssdk:dynamodb-enhanced:2.25.31")
 
     // Dagger for dependency injection
     implementation("com.google.dagger:dagger:2.51.1")

@@ -46,9 +46,9 @@ class MinecraftCosmosStack(
     private val stageInfo = additionalStackProps.stageInfo
     private val stageSuffix = additionalStackProps.stageInfo.stageSuffix
     init {
-        val (lambdaFunction, lambdaVersion) = createLambdaFunction()
-        val eventNotificationTopic = createEventNotificationTopic(lambdaFunction)
         val serverTable = createDynamoDbTable()
+        val (lambdaFunction, lambdaVersion) = createLambdaFunction(serverTable)
+        val eventNotificationTopic = createEventNotificationTopic(lambdaFunction)
         val api = createApiGateway(lambdaVersion)
         val siteBucket = createSiteBucket(api)
         val serverDataBucket = createServerDataBucket()
@@ -58,7 +58,7 @@ class MinecraftCosmosStack(
         configureLambdaEnvVars(lambdaFunction, cluster, task, securityGroup, vpc, eventNotificationTopic, serverTable)
     }
 
-    private fun createLambdaFunction(): Pair<Function, Alias> {
+    private fun createLambdaFunction(serverTable: TableV2): Pair<Function, Alias> {
         val lambdaFunction = Function.Builder.create(this, "mc-cosmos-lambda-$stageSuffix")
             .functionName("MinecraftCosmos-$stageSuffix")
             .code(Code.fromAsset("../lambda/build/libs/lambda-all.jar"))
@@ -79,6 +79,7 @@ class MinecraftCosmosStack(
         // TODO remove full access
         lambdaFunction.role!!.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"))
         lambdaFunction.role!!.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AmazonECS_FullAccess"))
+        serverTable.grantFullAccess(lambdaFunction)
 
         return Pair(lambdaFunction, lambdaAlias)
     }

@@ -9,6 +9,7 @@ import com.amazonaws.services.sns.AmazonSNSClientBuilder
 import com.lilaceclipse.minecraftcosmos.lambda.util.EnvVarProvider
 import dagger.Module
 import dagger.Provides
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 
 @Module
 class CosmosModule {
@@ -30,5 +31,10 @@ class CosmosModule {
     @Provides
     fun provideAmazonECS(): AmazonECS {
         return AmazonECSClientBuilder.defaultClient()
+    }
+
+    @Provides
+    fun provideDynamoDbEnhancedClient(): DynamoDbEnhancedClient {
+        return DynamoDbEnhancedClient.create()
     }
 }

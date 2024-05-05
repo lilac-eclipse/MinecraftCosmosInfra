@@ -21,4 +21,10 @@ sealed class CosmosRequest {
         val requestType: String,
         val serverUUID: String
     ) : CosmosRequest()
+
+    @Serializable
+    @SerialName("SERVERS")
+    data class ActiveServerRequest(
+        val requestType: String
+    ) : CosmosRequest()
 }

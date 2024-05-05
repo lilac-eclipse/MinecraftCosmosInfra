@@ -95,6 +95,13 @@
                 }
                 $("#cosmos-status").text(text)
             });
+        $.post( cosmosApiEndpoint, JSON.stringify(
+            {
+                "requestType": "SERVERS"
+            }))
+            .done(function( data ) {
+                console.log(data)
+            });
     });
 
     // ---------------
