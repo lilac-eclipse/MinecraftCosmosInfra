@@ -10,17 +10,21 @@ This creates the necessary resources in the aws account to execute the deploymen
 
 ## Prod deployment
 
-1. Verify the website url is pointing to the correct endpoint (https://fufgouqjz9.execute-api.us-west-1.amazonaws.com/prod)
-2. Execute the following:
-```
-./gradlew clean build shadowJar
-cdk synth
-cdk deploy --app stack/cdk.out MinecraftCosmosStack-prod
-```
+1. Tag the commit to deploy with a new version number. Use format:
 
+   `major.minor.fixrelease`
+    - Major revision (new UI, lots of new features, conceptual change, etc.)
+    - Minor revision (maybe a change to a search box, 1 feature added, collection of bug fixes)
+    - Bug fix release
+
+2. Execute the following:
+   ```
+   ./gradlew clean build shadowJar
+   cdk synth
+   cdk deploy --app stack/cdk.out MinecraftCosmosStack-prod
+   ```
 ## Test/beta deployment
-1. Verify the website url is pointing to the correct endpoint (https://xww3ls66qh.execute-api.us-west-1.amazonaws.com/prod)
-2. Use the deployment script `.\deploy_stack.bat` or execute the following:
+Use the deployment script `.\deploy_stack.bat` or execute the following:
 ```
 ./gradlew clean build shadowJar
 cdk synth
