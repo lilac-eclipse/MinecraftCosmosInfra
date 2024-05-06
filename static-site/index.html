@@ -12,29 +12,15 @@
 <body>
 
 <div class="container">
-    <div class="px-4 py-5 my-5 text-center">
-        <img class="d-block mx-auto mb-4" src="logo.png" alt="" width="100" height="100">
-        <h1 class="display-5 fw-bold">Welcome to Minecraft Cosmos!</h1>
-        <div class="col-lg-6 mx-auto">
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-<!--                <form id="start-server-form" method="POST">-->
-<!--                    <div>-->
-<!--                        <button type="submit" id="start-server-button" class="btn btn-secondary btn-lg px-4 gap-3" disabled>Start server</button>-->
-<!--                    </div>-->
-<!--                </form>-->
-
-                <!-- TODO move to ajax request -->
-<!--                <form method="get" action="/mccosmos-installer.zip">-->
-<!--                    <button type="submit" class="btn btn-outline-primary btn-lg px-4" data-bs-toggle="modal"-->
-<!--                            data-bs-target="#modDownloadModal">Download mods-->
-<!--                    </button>-->
-<!--                </form>-->
+    <div class="row">
+        <div class="col">
+            <div class="px-4 py-5 my-5 text-center">
+                <img class="d-block mx-auto mb-4" src="logo.png" alt="Logo" width="100" height="100">
+                <h1 class="display-5 fw-bold">Welcome to Cosmos!</h1>
             </div>
         </div>
     </div>
-</div>
 
-<div class="container">
     <div class="row">
         <div class="col">
             <table class="table">
@@ -49,27 +35,34 @@
                 <!-- Server rows will be dynamically added here -->
                 </tbody>
             </table>
+
+            <div id="loading-spinner" class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading...</p>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Mod download getting started modal -->
-<!--<div class="modal fade" id="modDownloadModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">-->
-<!--    <div class="modal-dialog">-->
-<!--        <div class="modal-content">-->
-<!--            <div class="modal-header">-->
-<!--                <h5 class="modal-title" id="exampleModalLabel">Getting started</h5>-->
-<!--                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>-->
-<!--            </div>-->
-<!--            <div class="modal-body">-->
-<!--                Mod download has been started! Once complete, extract the zip file and open the setup instructions.-->
-<!--            </div>-->
-<!--            <div class="modal-footer">-->
-<!--                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
+<div class="modal fade" id="modDownloadModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Getting started</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Mod download has been started! Once complete, extract the zip file and open the setup instructions.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
@@ -88,34 +81,13 @@
 
     // Perform setup once DOM is ready and config is loaded
     $.when($.ready, configLoaded).then(function() {
-        // $.post( cosmosApiEndpoint, JSON.stringify(
-        //     {
-        //         "requestType": "STATUS"
-        //     }))
-        //     .done(function( data ) {
-        //         let text = "Cosmos Status: ";
-        //         if (data.status === "RUNNING") {
-        //             text += "Running @ " + data.ip
-        //         } else if (data.status === "STARTING") {
-        //             text += "Cosmos is starting, check back soon c:"
-        //         } else if (data.status === "STOPPED") {
-        //             text += "Stopped"
-        //             $("#start-server-button")
-        //                 .prop("disabled", false)
-        //                 .addClass("btn-primary")
-        //                 .removeClass("btn-secondary")
-        //         } else if (data.status === "ERROR") {
-        //             text = "Cosmos is in a bad state, please contact the owner"
-        //         } else {
-        //             text += "Unknown"
-        //         }
-        //         $("#cosmos-status").text(text)
-        //     });
         $.post(cosmosApiEndpoint, JSON.stringify(
             {
                 "requestType": "SERVERS"
             }))
             .done(function(data) {
+                $("#loading-spinner").hide();
+
                 const servers = data.servers;
                 const tableBody = $("#server-table-body");
 
@@ -140,6 +112,7 @@
                         .addClass("btn btn-primary")
                         .text("Start Server")
                         .data("server-id", server.serverId)
+                        .prop("disabled", server.onlineStatus !== "OFFLINE")
                         .click(function() {
                             const serverId = $(this).data("server-id");
                             $.post(cosmosApiEndpoint, JSON.stringify(
@@ -160,8 +133,9 @@
                         .data("bs-toggle", "modal")
                         .data("bs-target", "#modDownloadModal")
                         .click(function() {
-                            // TODO: Implement the logic to download mods for the specific server
-                            // You can use the server.serverId to identify the server
+                            // TODO dynamically select mods to download from server data
+                            window.open("/mccosmos-installer.zip", "_blank");
+                            $("#modDownloadModal").modal("show");
                         });
 
                     actionCell.append(actionButton, " ", downloadModsButton);
