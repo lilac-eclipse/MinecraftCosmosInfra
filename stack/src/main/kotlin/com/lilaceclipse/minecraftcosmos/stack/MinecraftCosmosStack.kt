@@ -8,21 +8,23 @@ import software.amazon.awscdk.Stack
 import software.amazon.awscdk.StackProps
 import software.amazon.awscdk.services.apigateway.LambdaIntegration
 import software.amazon.awscdk.services.apigateway.RestApi
+import software.amazon.awscdk.services.certificatemanager.Certificate
+import software.amazon.awscdk.services.certificatemanager.CertificateValidation
+import software.amazon.awscdk.services.certificatemanager.DnsValidatedCertificate
+import software.amazon.awscdk.services.cloudfront.*
 import software.amazon.awscdk.services.dynamodb.*
 import software.amazon.awscdk.services.ec2.*
 import software.amazon.awscdk.services.ecr.Repository
 import software.amazon.awscdk.services.ecr.RepositoryProps
 import software.amazon.awscdk.services.ecs.*
 import software.amazon.awscdk.services.iam.ManagedPolicy
-import software.amazon.awscdk.services.lambda.Alias
-import software.amazon.awscdk.services.lambda.AliasProps
-import software.amazon.awscdk.services.lambda.Code
+import software.amazon.awscdk.services.lambda.*
 import software.amazon.awscdk.services.lambda.Function
-import software.amazon.awscdk.services.lambda.Runtime
-import software.amazon.awscdk.services.lambda.SnapStartConf
 import software.amazon.awscdk.services.logs.LogGroup
 import software.amazon.awscdk.services.logs.LogGroupProps
 import software.amazon.awscdk.services.logs.RetentionDays
+import software.amazon.awscdk.services.route53.HostedZone
+import software.amazon.awscdk.services.route53.HostedZoneAttributes
 import software.amazon.awscdk.services.s3.BlockPublicAccess
 import software.amazon.awscdk.services.s3.Bucket
 import software.amazon.awscdk.services.s3.ObjectOwnership
@@ -51,6 +53,7 @@ class MinecraftCosmosStack(
         val eventNotificationTopic = createEventNotificationTopic(lambdaFunction)
         val api = createApiGateway(lambdaVersion)
         val siteBucket = createSiteBucket(api)
+        val distribution = createCloudFrontDistribution(siteBucket)
         val serverDataBucket = createServerDataBucket()
         val (vpc, securityGroup) = createVpcAndSecurityGroup()
         val cluster = createEcsCluster(vpc)
@@ -152,6 +155,36 @@ class MinecraftCosmosStack(
             .build()
 
         return siteBucket
+    }
+
+    private fun createCloudFrontDistribution(siteBucket: Bucket): CloudFrontWebDistribution {
+
+        val hostedZone = HostedZone.fromHostedZoneAttributes(this, "mc-cosmos-hostedzone-$stageSuffix", HostedZoneAttributes.builder()
+            .hostedZoneId(stageInfo.hostedZoneId)
+            .zoneName(stageInfo.domainName)
+            .build())
+
+        val certificate = DnsValidatedCertificate.Builder.create(this, "mc-cosmos-certificate-$stageSuffix")
+            .domainName(stageInfo.domainName)
+            .hostedZone(hostedZone)
+            .region("us-east-1") // CloudFront certificates must be in us-east-1
+            .build()
+
+        val distribution = CloudFrontWebDistribution.Builder.create(this, "mc-cosmos-distribution-$stageSuffix")
+            .originConfigs(listOf(SourceConfiguration.builder()
+                .s3OriginSource(S3OriginConfig.builder()
+                    .s3BucketSource(siteBucket)
+                    .build())
+                .behaviors(listOf(Behavior.builder()
+                    .isDefaultBehavior(true)
+                    .build()))
+                .build()))
+            .viewerCertificate(ViewerCertificate.fromAcmCertificate(certificate, ViewerCertificateOptions.builder()
+                .aliases(listOf(stageInfo.domainName))
+                .build()))
+            .build()
+
+        return distribution
     }
 
     private fun createServerDataBucket(): Bucket {
