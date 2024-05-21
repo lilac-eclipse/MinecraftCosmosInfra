@@ -114,6 +114,7 @@
                         .data("server-id", server.serverId)
                         .prop("disabled", server.onlineStatus !== "OFFLINE")
                         .click(function() {
+                            $(this).prop("disabled", true);
                             const serverId = $(this).data("server-id");
                             $.post(cosmosApiEndpoint, JSON.stringify(
                                 {
