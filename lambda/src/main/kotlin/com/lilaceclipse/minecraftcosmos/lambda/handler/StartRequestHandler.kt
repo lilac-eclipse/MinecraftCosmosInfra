@@ -10,7 +10,7 @@ import com.lilaceclipse.minecraftcosmos.lambda.model.ServerEntry
 import com.lilaceclipse.minecraftcosmos.lambda.storage.DynamoStorage
 import com.lilaceclipse.minecraftcosmos.lambda.util.EnvVarProvider
 import com.lilaceclipse.minecraftcosmos.lambda.util.SnsUtil
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javax.inject.Inject
 
 

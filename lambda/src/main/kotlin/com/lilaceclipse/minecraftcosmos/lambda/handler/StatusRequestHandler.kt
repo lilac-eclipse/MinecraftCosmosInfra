@@ -10,7 +10,7 @@ import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosRequest.StatusRequest
 import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosResponse
 import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosResponse.StatusResponse
 import com.lilaceclipse.minecraftcosmos.lambda.util.EnvVarProvider
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javax.inject.Inject
 
 class StatusRequestHandler @Inject constructor(

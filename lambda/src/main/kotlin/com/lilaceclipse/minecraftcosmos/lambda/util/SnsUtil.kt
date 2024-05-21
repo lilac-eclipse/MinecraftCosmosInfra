@@ -2,7 +2,7 @@ package com.lilaceclipse.minecraftcosmos.lambda.util
 
 import com.amazonaws.services.sns.AmazonSNS
 import com.amazonaws.services.sns.model.PublishRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javax.inject.Inject
 
 class SnsUtil @Inject constructor(

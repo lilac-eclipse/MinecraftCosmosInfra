@@ -2,7 +2,7 @@ package com.lilaceclipse.minecraftcosmos.lambda.util
 
 import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosRequest
 import kotlinx.serialization.json.Json
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javax.inject.Inject
 
 class RequestUtil @Inject constructor() {

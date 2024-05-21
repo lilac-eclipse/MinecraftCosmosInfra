@@ -7,7 +7,7 @@ import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosResponse.ClientErrorR
 import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosResponse.ServerErrorResponse
 import com.lilaceclipse.minecraftcosmos.lambda.util.RequestUtil
 import com.lilaceclipse.minecraftcosmos.lambda.util.ResponseUtil
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javax.inject.Inject
 
 class CosmosRequestRouter @Inject constructor(

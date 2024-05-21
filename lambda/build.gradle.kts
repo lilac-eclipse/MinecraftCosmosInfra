@@ -33,8 +33,10 @@ dependencies {
     kapt("com.google.dagger:dagger-compiler:2.51.1")
 
     // Logging libraries
-    implementation("io.github.microutils:kotlin-logging:2.1.23")
-    implementation("org.slf4j:slf4j-simple:1.7.30")
+    implementation("io.github.oshai:kotlin-logging-jvm:5.1.4") // kotlin logging
+    implementation("org.apache.logging.log4j:log4j-api:2.20.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.20.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.20.0")
 }
 
 kapt {

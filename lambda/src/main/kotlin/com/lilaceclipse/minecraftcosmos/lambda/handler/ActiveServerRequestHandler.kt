@@ -4,7 +4,7 @@ import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosRequest
 import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosResponse
 import com.lilaceclipse.minecraftcosmos.lambda.model.CosmosResponse.ActiveServerResponse
 import com.lilaceclipse.minecraftcosmos.lambda.storage.DynamoStorage
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javax.inject.Inject
 
 class ActiveServerRequestHandler @Inject constructor(

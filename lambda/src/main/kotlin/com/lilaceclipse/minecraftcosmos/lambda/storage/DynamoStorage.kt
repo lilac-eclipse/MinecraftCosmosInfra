@@ -3,7 +3,7 @@ package com.lilaceclipse.minecraftcosmos.lambda.storage
 
 import com.lilaceclipse.minecraftcosmos.lambda.model.ServerEntry
 import com.lilaceclipse.minecraftcosmos.lambda.util.EnvVarProvider
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Expression
 import software.amazon.awssdk.enhanced.dynamodb.Key
