@@ -146,7 +146,7 @@ class MinecraftCosmosStack(
 
         BucketDeployment.Builder.create(this, "deploy-static-site-$stageSuffix")
             .sources(listOf(
-                Source.asset("../static-site"),
+                Source.asset("../site"),
                 Source.jsonData("config.json", config)))
             .destinationBucket(siteBucket)
             .prune(false)
