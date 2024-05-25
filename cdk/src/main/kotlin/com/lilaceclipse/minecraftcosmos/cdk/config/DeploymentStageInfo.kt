@@ -1,4 +1,4 @@
-package com.lilaceclipse.minecraftcosmos.stack.config
+package com.lilaceclipse.minecraftcosmos.cdk.config
 
 interface DeploymentStageInfo {
     val stageSuffix: String

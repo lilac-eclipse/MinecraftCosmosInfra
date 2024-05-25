@@ -21,14 +21,14 @@ This creates the necessary resources in the aws account to execute the deploymen
    ```
    ./gradlew clean build shadowJar
    cdk synth
-   cdk deploy --app stack/cdk.out MinecraftCosmosStack-prod
+   cdk deploy --app cdk/cdk.out MinecraftCosmosStack-prod
    ```
 ## Test/beta deployment
 Use the deployment script `.\deploy_stack.bat` or execute the following:
 ```
 ./gradlew clean build shadowJar
 cdk synth
-cdk deploy --app stack/cdk.out MinecraftCosmosStack-beta
+cdk deploy --app cdk/cdk.out MinecraftCosmosStack-beta
 ```
 3. Optionally, copy the mod data to the newly created bucket
 
@@ -43,4 +43,4 @@ cdk destroy MinecraftCosmosStack-beta
 ## Troubleshooting
 ### Could not create output directory cdk.out (EEXIST: file already exists, mkdir '...\MinecraftCosmos\MinecraftCosmosInfra\cdk.out')
 
-recreate the symlink with `mklink /D cdk.out stack\cdk.out`
+recreate the symlink with `mklink /D cdk.out cdk\cdk.out`

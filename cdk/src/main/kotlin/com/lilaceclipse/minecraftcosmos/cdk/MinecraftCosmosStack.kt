@@ -1,15 +1,13 @@
-package com.lilaceclipse.minecraftcosmos.stack
+package com.lilaceclipse.minecraftcosmos.cdk
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.lilaceclipse.minecraftcosmos.stack.config.DeploymentStageInfo
+import com.lilaceclipse.minecraftcosmos.cdk.config.DeploymentStageInfo
 import software.amazon.awscdk.Duration
 import software.amazon.awscdk.RemovalPolicy
 import software.amazon.awscdk.Stack
 import software.amazon.awscdk.StackProps
 import software.amazon.awscdk.services.apigateway.LambdaIntegration
 import software.amazon.awscdk.services.apigateway.RestApi
-import software.amazon.awscdk.services.certificatemanager.Certificate
-import software.amazon.awscdk.services.certificatemanager.CertificateValidation
 import software.amazon.awscdk.services.certificatemanager.DnsValidatedCertificate
 import software.amazon.awscdk.services.cloudfront.*
 import software.amazon.awscdk.services.dynamodb.*

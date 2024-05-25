@@ -1,1 +1,0 @@
-call ./gradlew clean build shadowJar && call cdk synth && call cdk deploy --app stack/cdk.out MinecraftCosmosStack-beta

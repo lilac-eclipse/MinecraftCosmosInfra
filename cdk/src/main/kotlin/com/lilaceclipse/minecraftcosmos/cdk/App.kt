@@ -1,6 +1,6 @@
-package com.lilaceclipse.minecraftcosmos.stack
+package com.lilaceclipse.minecraftcosmos.cdk
 
-import com.lilaceclipse.minecraftcosmos.stack.config.deploymentStages
+import com.lilaceclipse.minecraftcosmos.cdk.config.deploymentStages
 import software.amazon.awscdk.App
 import software.amazon.awscdk.Environment
 import software.amazon.awscdk.StackProps

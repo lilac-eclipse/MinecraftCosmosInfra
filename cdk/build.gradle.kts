@@ -20,6 +20,6 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.lilaceclipse.minecraftcosmos.stack.AppKt")
+    mainClass.set("com.lilaceclipse.minecraftcosmos.cdk.AppKt")
 }
 
