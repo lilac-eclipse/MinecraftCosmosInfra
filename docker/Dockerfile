@@ -10,4 +10,4 @@ RUN mkdir /app
 
 COPY --from=build /home/gradle/src/docker/build/libs/ /app/
 
-ENTRYPOINT ["java","-jar","/app/src-all.jar"]
+ENTRYPOINT ["java","-jar","/app/docker-all.jar"]
