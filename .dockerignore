@@ -1,0 +1,4 @@
+# Exclude files and directories in the root that are not needed for docker building
+cdk
+cdk.out
+lambda
