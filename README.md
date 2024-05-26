@@ -61,7 +61,7 @@ docker run -it --entrypoint /bin/bash mc-cosmos
 Execute the following commands:
 ```
 aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 252475162445.dkr.ecr.us-west-2.amazonaws.com
-docker build -t mc-cosmos .
+docker build -t mc-cosmos -f docker/Dockerfile .
 docker tag mc-cosmos:latest 252475162445.dkr.ecr.us-west-2.amazonaws.com/mc-cosmos-repo-beta:latest
 docker push 252475162445.dkr.ecr.us-west-2.amazonaws.com/mc-cosmos-repo-beta:latest
 ```
@@ -78,7 +78,7 @@ docker push 252475162445.dkr.ecr.us-west-2.amazonaws.com/mc-cosmos-repo-beta:lat
 2. Execute the following:
    ```
    aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 252475162445.dkr.ecr.us-west-2.amazonaws.com
-   docker build -t mc-cosmos .
+   docker build -t mc-cosmos -f docker/Dockerfile .
    docker tag mc-cosmos:latest 252475162445.dkr.ecr.us-west-2.amazonaws.com/mc-cosmos-repo-prod:latest
    docker push 252475162445.dkr.ecr.us-west-2.amazonaws.com/mc-cosmos-repo-prod:latest
    ```
