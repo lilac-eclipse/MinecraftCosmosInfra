@@ -1,70 +1,109 @@
 import java.io.ByteArrayOutputStream
+import javax.swing.JOptionPane
+
+// Define common variables
+val region = "us-west-2"
+val registryUrl = "252475162445.dkr.ecr.us-west-2.amazonaws.com"
+val imageName = "mc-cosmos"
 
 tasks.register("buildAll") {
     group = "cosmos"
     description = "Builds all modules"
 
-    dependsOn(":cdk:build", ":common:build", ":lambda:build",  ":docker:build", ":client:build")
+    dependsOn(":cdk:build", ":common:build", ":lambda:build", ":docker:build", ":client:build")
 }
 
-tasks.register("buildAndDeployCdkStackBeta") {
+tasks.register("deployAllProd") {
+    group = "cosmos"
+    description = "Builds all modules and pushes Docker image and CDK stack to production"
+
+    dependsOn(":buildAll")
+
+    doLast {
+        val confirmProd = JOptionPane.showConfirmDialog(
+            null,
+            "Are you sure you want to deploy to production?",
+            "Confirm Production Deployment",
+            JOptionPane.YES_NO_OPTION
+        )
+
+        if (confirmProd == JOptionPane.YES_OPTION) {
+            val imageTag = "latest"
+            val repositoryName = "mc-cosmos-repo-prod"
+            val stackName = "MinecraftCosmosStack-prod"
+
+            buildAndPushDockerImage(imageTag, repositoryName)
+            synthesizeAndDeployCdkStack(stackName)
+        } else {
+            println("Production deployment canceled.")
+        }
+    }
+}
+
+tasks.register("deployCdkBeta") {
     group = "cosmos"
     description = "Synthesizes and deploys the CDK stack"
 
     dependsOn(":lambda:build", ":lambda:shadowJar", ":cdk:build")
 
     doLast {
-        // Synthesize the CDK stack
-        exec {
-            commandLine("cdk.cmd", "synth")
-        }
-
-        // Deploy the CDK stack
-        exec {
-            commandLine("cdk.cmd", "deploy", "--app", "cdk.out", "MinecraftCosmosStack-beta")
-        }
+        val stackName = "MinecraftCosmosStack-beta"
+        synthesizeAndDeployCdkStack(stackName)
     }
 }
 
-tasks.register("buildAndPushDockerImageBeta") {
+tasks.register("deployDockerBeta") {
     group = "cosmos"
     description = "Builds and pushes the Docker image to Amazon ECR"
 
     dependsOn(":docker:build")
 
     doLast {
-        val region = "us-west-2"
-        val registryUrl = "252475162445.dkr.ecr.us-west-2.amazonaws.com"
-        val imageName = "mc-cosmos"
         val imageTag = "latest"
         val repositoryName = "mc-cosmos-repo-beta"
+        buildAndPushDockerImage(imageTag, repositoryName)
+    }
+}
 
-        exec {
-            commandLine("docker", "build", "-t", "$imageName:$imageTag", "-f", "docker/Dockerfile", ".")
-        }
+// Function to get ECR login password
+fun getEcrLoginPassword(): String {
+    val loginPasswordStream = ByteArrayOutputStream()
+    exec {
+        commandLine("aws", "ecr", "get-login-password", "--region", region)
+        standardOutput = loginPasswordStream
+    }
+    return loginPasswordStream.toString().trim()
+}
 
-        // Get the ECR login password
-        val loginPasswordStream = ByteArrayOutputStream()
-        exec {
-            commandLine("aws", "ecr", "get-login-password", "--region", region)
-            standardOutput = loginPasswordStream
-        }
-        val loginPassword = loginPasswordStream.toString().trim()
+// Function to build and push Docker image
+fun buildAndPushDockerImage(imageTag: String, repositoryName: String) {
+    exec {
+        commandLine("docker", "build", "-t", "$imageName:$imageTag", "-f", "docker/Dockerfile", ".")
+    }
 
-        // Log in to the ECR registry
-        exec {
-            commandLine("docker", "login", "--username", "AWS", "--password-stdin", registryUrl)
-            standardInput = loginPassword.byteInputStream()
-        }
+    val loginPassword = getEcrLoginPassword()
 
-        // Tag the Docker image
-        exec {
-            commandLine("docker", "tag", "$imageName:$imageTag", "$registryUrl/$repositoryName:$imageTag")
-        }
+    exec {
+        commandLine("docker", "login", "--username", "AWS", "--password-stdin", registryUrl)
+        standardInput = loginPassword.byteInputStream()
+    }
 
-        // Push the Docker image to ECR
-        exec {
-            commandLine("docker", "push", "$registryUrl/$repositoryName:$imageTag")
-        }
+    exec {
+        commandLine("docker", "tag", "$imageName:$imageTag", "$registryUrl/$repositoryName:$imageTag")
+    }
+
+    exec {
+        commandLine("docker", "push", "$registryUrl/$repositoryName:$imageTag")
+    }
+}
+
+// Function to synthesize and deploy CDK stack
+fun synthesizeAndDeployCdkStack(stackName: String) {
+    exec {
+        commandLine("cdk.cmd", "synth")
+    }
+
+    exec {
+        commandLine("cdk.cmd", "deploy", "--app", "cdk.out", stackName)
     }
 }
