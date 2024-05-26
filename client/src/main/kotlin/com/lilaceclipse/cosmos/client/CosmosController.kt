@@ -1,5 +1,6 @@
 package com.lilaceclipse.cosmos.client
 
+import com.lilaceclipse.cosmos.client.model.FileUtil
 import com.lilaceclipse.cosmos.client.model.ModInstaller
 import com.lilaceclipse.cosmos.client.model.Updater
 import com.lilaceclipse.cosmos.client.view.ClientWindow
@@ -21,6 +22,8 @@ class CosmosController @Inject constructor(
     }
 
     private fun bindModelsWithViews() {
+        // TODO this needs a better design pattern, this isn't scalable
+
         modInstaller.clientWindow = clientWindow
         clientWindow.modInstaller = modInstaller
 

@@ -1,15 +1,15 @@
 package com.lilaceclipse.cosmos.client.view
 
+import com.lilaceclipse.cosmos.client.model.FileUtil
 import com.lilaceclipse.cosmos.client.model.ModInstaller
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.*
-import java.io.File
 import javax.inject.Inject
 import javax.swing.*
 
 
 class ClientWindow @Inject constructor(
-
+    private val fileUtil: FileUtil
 ) : JFrame("Cosmos Installer") {
 
     // Model bindings
@@ -80,7 +80,7 @@ class ClientWindow @Inject constructor(
 
         directoryName.apply {
             font = font.deriveFont(16.0f)
-            text = getDefaultInstallDirectory().path
+            text = fileUtil.getDefaultInstallDirectory().path
             maximumSize = Dimension(300, 36)
             minimumSize = Dimension(300, 36)
             preferredSize = Dimension(300, 36)
@@ -124,20 +124,10 @@ class ClientWindow @Inject constructor(
         contentPane.add(component, constraints)
     }
 
-    private fun getDefaultInstallDirectory(): File {
-        val os = System.getProperty("os.name").toLowerCase()
-        val appDataDir = when {
-            os.contains("win") -> File(System.getenv("APPDATA"))
-            os.contains("mac") -> File(System.getProperty("user.home"), "/Library/Application Support")
-            else -> File(System.getProperty("user.home"))
-        }
-        return File(appDataDir, ".minecraft")
-    }
-
     private fun selectInstallDirectory() {
         val fileChooser = JFileChooser().apply {
             fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-            currentDirectory = getDefaultInstallDirectory()
+            currentDirectory = fileUtil.getDefaultInstallDirectory()
         }
         val result = fileChooser.showOpenDialog(this)
         if (result == JFileChooser.APPROVE_OPTION) {
