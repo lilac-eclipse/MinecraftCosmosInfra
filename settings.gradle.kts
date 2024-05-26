@@ -8,4 +8,4 @@
  */
 
 rootProject.name = "MinecraftCosmosInfra"
-include("cdk", "lambda", "site", "docker")
+include("cdk", "site", "common", "lambda", "docker", "client")

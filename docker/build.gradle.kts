@@ -17,6 +17,9 @@ plugins {
 }
 
 dependencies {
+    // Common libs
+    implementation(project(":common"))
+
     // CLI libraries
     implementation("info.picocli:picocli:4.6.3")
     kapt ("info.picocli:picocli-codegen:4.6.3")
