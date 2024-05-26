@@ -65,6 +65,19 @@ tasks.register("deployDockerBeta") {
     }
 }
 
+tasks.register("generateClientJar") {
+    group = "cosmos"
+    description = "Builds and pushes the Docker image to Amazon ECR"
+
+    dependsOn(":client:shadowJar")
+
+    doLast {
+        // Open the client/build/libs directory in the file explorer
+        val outputDir = project.file("client/build/libs")
+        openFileExplorer(outputDir)
+    }
+}
+
 // Function to get ECR login password
 fun getEcrLoginPassword(): String {
     val loginPasswordStream = ByteArrayOutputStream()
@@ -105,5 +118,22 @@ fun synthesizeAndDeployCdkStack(stackName: String) {
 
     exec {
         commandLine("cdk.cmd", "deploy", "--app", "cdk.out", stackName)
+    }
+}
+
+// Function to open a directory in the file explorer
+fun openFileExplorer(directory: File) {
+    val os = System.getProperty("os.name").toLowerCase()
+    when {
+        os.contains("win") -> {
+            Runtime.getRuntime().exec("explorer.exe ${directory.absolutePath}")
+        }
+        os.contains("mac") -> {
+            Runtime.getRuntime().exec("open ${directory.absolutePath}")
+        }
+        else -> {
+            // Assume Linux or Unix-based system
+            Runtime.getRuntime().exec("xdg-open ${directory.absolutePath}")
+        }
     }
 }
