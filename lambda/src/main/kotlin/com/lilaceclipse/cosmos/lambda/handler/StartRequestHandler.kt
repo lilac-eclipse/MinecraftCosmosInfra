@@ -5,8 +5,8 @@ import com.amazonaws.services.ecs.model.*
 import com.lilaceclipse.cosmos.lambda.model.CosmosRequest.StartRequest
 import com.lilaceclipse.cosmos.lambda.model.CosmosResponse
 import com.lilaceclipse.cosmos.lambda.model.CosmosResponse.StartResponse
-import com.lilaceclipse.cosmos.lambda.model.OnlineStatus
-import com.lilaceclipse.cosmos.lambda.model.ServerEntry
+import com.lilaceclipse.cosmos.common.model.OnlineStatus
+import com.lilaceclipse.cosmos.common.model.ServerEntry
 import com.lilaceclipse.cosmos.lambda.storage.DynamoStorage
 import com.lilaceclipse.cosmos.lambda.util.EnvVarProvider
 import com.lilaceclipse.cosmos.lambda.util.SnsUtil

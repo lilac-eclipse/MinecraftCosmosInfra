@@ -10,10 +10,13 @@
 plugins {
     // Apply the common convention plugin for shared build configuration between library and application projects.
     id("MinecraftCosmosInfra.kotlin-common-conventions")
-
-
+    kotlin("plugin.serialization")
 }
 
 dependencies {
+    // AWS
+    implementation("software.amazon.awssdk:dynamodb-enhanced:2.25.31")
 
+    // Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }

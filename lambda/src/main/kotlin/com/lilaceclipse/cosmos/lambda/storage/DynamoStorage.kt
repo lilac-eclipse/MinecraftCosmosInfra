@@ -1,7 +1,7 @@
 package com.lilaceclipse.cosmos.lambda.storage
 
 
-import com.lilaceclipse.cosmos.lambda.model.ServerEntry
+import com.lilaceclipse.cosmos.common.model.ServerEntry
 import com.lilaceclipse.cosmos.lambda.util.EnvVarProvider
 import io.github.oshai.kotlinlogging.KotlinLogging
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient

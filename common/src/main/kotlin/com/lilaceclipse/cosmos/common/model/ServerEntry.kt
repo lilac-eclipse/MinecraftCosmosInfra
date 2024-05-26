@@ -1,4 +1,4 @@
-package com.lilaceclipse.cosmos.lambda.model
+package com.lilaceclipse.cosmos.common.model
 
 import kotlinx.serialization.Serializable
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter

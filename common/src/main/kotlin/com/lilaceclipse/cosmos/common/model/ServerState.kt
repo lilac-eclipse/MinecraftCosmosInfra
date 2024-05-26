@@ -1,4 +1,4 @@
-package com.lilaceclipse.cosmos.docker.storage
+package com.lilaceclipse.cosmos.common.model
 
 enum class ServerState {
     ACTIVE,

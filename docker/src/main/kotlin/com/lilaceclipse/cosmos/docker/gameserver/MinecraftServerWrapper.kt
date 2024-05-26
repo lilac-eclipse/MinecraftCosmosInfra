@@ -1,8 +1,8 @@
 package com.lilaceclipse.cosmos.docker.gameserver
 
+import com.lilaceclipse.cosmos.common.model.OnlineStatus
 import com.lilaceclipse.cosmos.docker.storage.DynamoStorage
-import com.lilaceclipse.cosmos.docker.storage.OnlineStatus
-import com.lilaceclipse.cosmos.docker.storage.ServerEntry
+import com.lilaceclipse.cosmos.common.model.ServerEntry
 import com.lilaceclipse.cosmos.docker.util.ProcessIOAdapter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Path
