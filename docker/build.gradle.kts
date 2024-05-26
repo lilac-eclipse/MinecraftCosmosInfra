@@ -39,5 +39,5 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.lilaceclipse.cosmos.MainKt")
+    mainClass.set("com.lilaceclipse.cosmos.docker.MainKt")
 }
