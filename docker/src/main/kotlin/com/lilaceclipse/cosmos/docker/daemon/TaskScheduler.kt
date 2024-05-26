@@ -1,10 +1,8 @@
 package com.lilaceclipse.cosmos.docker.daemon
 
-import com.lilaceclipse.cosmos.docker.gameserver.GameServerWrapper
-import com.lilaceclipse.cosmos.gameserver.ServerStatus
-import com.lilaceclipse.cosmos.storage.DynamoStorage
-import com.lilaceclipse.cosmos.storage.OnlineStatus
-import com.lilaceclipse.cosmos.storage.ServerEntry
+import com.lilaceclipse.cosmos.docker.gameserver.ServerStatus
+import com.lilaceclipse.cosmos.docker.storage.DynamoStorage
+import com.lilaceclipse.cosmos.docker.storage.ServerEntry
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject

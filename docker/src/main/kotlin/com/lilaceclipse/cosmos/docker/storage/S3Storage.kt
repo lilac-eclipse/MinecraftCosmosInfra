@@ -1,8 +1,7 @@
 package com.lilaceclipse.cosmos.docker.storage
 
 import com.amazonaws.services.s3.transfer.TransferManager
-import com.lilaceclipse.cosmos.config.EnvironmentConfig
-import com.lilaceclipse.cosmos.util.FilePrintUtil
+import com.lilaceclipse.cosmos.docker.config.EnvironmentConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.FileUtils
 import java.io.File

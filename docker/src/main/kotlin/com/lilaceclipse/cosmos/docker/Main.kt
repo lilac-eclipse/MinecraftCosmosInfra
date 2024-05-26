@@ -1,6 +1,6 @@
 package com.lilaceclipse.cosmos.docker
 
-import com.lilaceclipse.cosmos.daemon.CosmosCli
+import com.lilaceclipse.cosmos.docker.daemon.CosmosCli
 import picocli.CommandLine
 import kotlin.system.exitProcess
 

@@ -1,8 +1,8 @@
 package com.lilaceclipse.cosmos.docker.daemon
 
-import com.lilaceclipse.cosmos.config.Environment
-import com.lilaceclipse.cosmos.dagger.DaggerCosmosComponent
-import com.lilaceclipse.cosmos.dagger.EnvironmentModule
+import com.lilaceclipse.cosmos.docker.config.Environment
+import com.lilaceclipse.cosmos.docker.dagger.DaggerCosmosComponent
+import com.lilaceclipse.cosmos.docker.dagger.EnvironmentModule
 import io.github.oshai.kotlinlogging.KotlinLogging
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option

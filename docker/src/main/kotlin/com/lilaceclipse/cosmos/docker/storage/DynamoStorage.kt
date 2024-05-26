@@ -1,6 +1,6 @@
 package com.lilaceclipse.cosmos.docker.storage
 
-import com.lilaceclipse.cosmos.config.EnvironmentConfig
+import com.lilaceclipse.cosmos.docker.config.EnvironmentConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Key

@@ -1,7 +1,7 @@
 package com.lilaceclipse.cosmos.docker.gameserver
 
-import com.lilaceclipse.cosmos.storage.DynamoStorage
-import com.lilaceclipse.cosmos.storage.S3Storage
+import com.lilaceclipse.cosmos.docker.storage.DynamoStorage
+import com.lilaceclipse.cosmos.docker.storage.S3Storage
 import java.nio.file.Path
 import javax.inject.Inject
 

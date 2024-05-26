@@ -1,7 +1,6 @@
 package com.lilaceclipse.cosmos.docker.daemon
 
-import com.lilaceclipse.cosmos.docker.gameserver.GameServerWrapper
-import com.lilaceclipse.cosmos.gameserver.ServerStatus
+import com.lilaceclipse.cosmos.docker.gameserver.ServerStatus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject

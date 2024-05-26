@@ -1,7 +1,7 @@
 package com.lilaceclipse.cosmos.docker.dagger
 
-import com.lilaceclipse.cosmos.config.Environment
-import com.lilaceclipse.cosmos.config.EnvironmentConfig
+import com.lilaceclipse.cosmos.docker.config.Environment
+import com.lilaceclipse.cosmos.docker.config.EnvironmentConfig
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
