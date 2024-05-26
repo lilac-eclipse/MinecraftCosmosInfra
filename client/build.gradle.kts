@@ -15,7 +15,7 @@ plugins {
 
     application
     id("com.github.johnrengelman.shadow") version "7.0.0"
-
+    kotlin("plugin.serialization")
 }
 
 dependencies {
@@ -24,6 +24,9 @@ dependencies {
 
     // UI
     implementation("com.formdev:flatlaf:3.4.1")
+
+    // Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }
 
 application {
