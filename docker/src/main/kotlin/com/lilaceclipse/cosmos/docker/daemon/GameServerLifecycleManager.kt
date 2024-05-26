@@ -30,14 +30,11 @@ class GameServerLifecycleManager @AssistedInject constructor(
         log.info { "Starting game server!" }
 
         val containerIp = ecsUtil.getContainerPublicIp()
-        log.info { "ip: $containerIp" }
         dynamoStorage.updateServerEntryNonNulls(ServerEntry(
             serverId = serverUUID.toString(),
             onlineStatus = OnlineStatus.SERVER_STARTING,
             ipAddress = containerIp))
-        log.info { "made call!" }
         val serverEntry = dynamoStorage.getServerEntryFromDb(serverUUID.toString())
-        log.info { serverEntry }
         s3KeySuffix = serverEntry.s3KeySuffix
 
         s3Storage.downloadMinecraft(GAME_STORAGE_DIR, s3KeySuffix!!)
