@@ -7,6 +7,7 @@ import com.lilaceclipse.cosmos.util.ProcessIOAdapter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Path
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 /**
  * Note: This class should only be used once. Once shutdownServer() is called, startServer() should not be called
@@ -67,10 +68,8 @@ class MinecraftServerWrapper(
             minecraftServerProcess.destroyForcibly()
         } else {
             serverIOAdapter.writeLine("stop")
-            val exitCode = minecraftServerProcess.waitFor()
-            if (exitCode != 0) {
-                log.warn { "MC server exit code was non-zero: $exitCode" }
-            }
+            val bool = minecraftServerProcess.waitFor(30, TimeUnit.SECONDS)
+            log.info { "bool=$bool" }
         }
 
         cleanup()
