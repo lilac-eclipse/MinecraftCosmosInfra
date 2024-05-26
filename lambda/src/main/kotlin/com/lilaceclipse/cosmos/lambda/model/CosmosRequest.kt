@@ -27,4 +27,10 @@ sealed class CosmosRequest {
     data class ActiveServerRequest(
         val requestType: String
     ) : CosmosRequest()
+
+    @Serializable
+    @SerialName("CLIENT_VERSION")
+    data class ClientVersionRequest(
+        val requestType: String
+    ) : CosmosRequest()
 }

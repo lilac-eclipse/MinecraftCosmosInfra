@@ -1,8 +1,7 @@
 package com.lilaceclipse.cosmos.lambda.handler
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
-import com.lilaceclipse.cosmos.lambda.model.CosmosRequest
-import com.lilaceclipse.cosmos.lambda.model.CosmosResponse
+import com.lilaceclipse.cosmos.lambda.model.CosmosRequest.*
 import com.lilaceclipse.cosmos.lambda.model.CosmosResponse.ClientErrorResponse
 import com.lilaceclipse.cosmos.lambda.model.CosmosResponse.ServerErrorResponse
 import com.lilaceclipse.cosmos.lambda.util.RequestUtil
@@ -14,6 +13,7 @@ class CosmosRequestRouter @Inject constructor(
     private val statusRequestHandler: StatusRequestHandler,
     private val startRequestHandler: StartRequestHandler,
     private val activeServerRequestHandler: ActiveServerRequestHandler,
+    private val clientVersionRequestHandler: ClientVersionRequestHandler,
     private val requestUtil: RequestUtil,
     private val responseUtil: ResponseUtil
 ) {
@@ -27,15 +27,10 @@ class CosmosRequestRouter @Inject constructor(
         val response = try {
             val cosmosRequest = requestUtil.parseRequest(requestBody)
             when (cosmosRequest) {
-                is CosmosRequest.StatusRequest -> {
-                    statusRequestHandler.handleRequest(cosmosRequest)
-                }
-                is CosmosRequest.StartRequest -> {
-                    startRequestHandler.handleRequest(cosmosRequest)
-                }
-                is CosmosRequest.ActiveServerRequest -> {
-                    activeServerRequestHandler.handleRequest(cosmosRequest)
-                }
+                is StatusRequest -> statusRequestHandler.handleRequest(cosmosRequest)
+                is StartRequest -> startRequestHandler.handleRequest(cosmosRequest)
+                is ActiveServerRequest -> activeServerRequestHandler.handleRequest(cosmosRequest)
+                is ClientVersionRequest -> clientVersionRequestHandler.handleRequest(cosmosRequest)
             }
         } catch (e: IllegalArgumentException) {
             log.error { "Malformed request body" }

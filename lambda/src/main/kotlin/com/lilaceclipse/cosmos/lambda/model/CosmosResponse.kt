@@ -22,6 +22,11 @@ sealed class CosmosResponse {
     ) : CosmosResponse()
 
     @Serializable
+    data class ClientVersionResponse(
+        val clientVersion: String
+    ) : CosmosResponse()
+
+    @Serializable
     data class ClientErrorResponse(
         val message: String
     ) : CosmosResponse()
