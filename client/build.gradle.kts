@@ -17,4 +17,7 @@ plugins {
 dependencies {
     // Common libs
     implementation(project(":common"))
+
+    // UI
+    implementation("com.formdev:flatlaf:3.4.1")
 }
