@@ -1,6 +1,6 @@
 package com.lilaceclipse.cosmos.lambda.util
 
-import com.lilaceclipse.cosmos.lambda.model.CosmosRequest
+import com.lilaceclipse.cosmos.common.model.CosmosRequest
 import kotlinx.serialization.json.Json
 import io.github.oshai.kotlinlogging.KotlinLogging
 import javax.inject.Inject

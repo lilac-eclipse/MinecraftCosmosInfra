@@ -2,9 +2,9 @@ package com.lilaceclipse.cosmos.lambda.handler
 
 import com.amazonaws.services.ecs.AmazonECS
 import com.amazonaws.services.ecs.model.*
-import com.lilaceclipse.cosmos.lambda.model.CosmosRequest.StartRequest
-import com.lilaceclipse.cosmos.lambda.model.CosmosResponse
-import com.lilaceclipse.cosmos.lambda.model.CosmosResponse.StartResponse
+import com.lilaceclipse.cosmos.common.model.CosmosRequest.StartRequest
+import com.lilaceclipse.cosmos.common.model.CosmosResponse
+import com.lilaceclipse.cosmos.common.model.CosmosResponse.StartResponse
 import com.lilaceclipse.cosmos.common.model.OnlineStatus
 import com.lilaceclipse.cosmos.common.model.ServerEntry
 import com.lilaceclipse.cosmos.lambda.storage.DynamoStorage

@@ -1,9 +1,9 @@
 package com.lilaceclipse.cosmos.lambda.handler
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
-import com.lilaceclipse.cosmos.lambda.model.CosmosRequest.*
-import com.lilaceclipse.cosmos.lambda.model.CosmosResponse.ClientErrorResponse
-import com.lilaceclipse.cosmos.lambda.model.CosmosResponse.ServerErrorResponse
+import com.lilaceclipse.cosmos.common.model.CosmosRequest.*
+import com.lilaceclipse.cosmos.common.model.CosmosResponse.ClientErrorResponse
+import com.lilaceclipse.cosmos.common.model.CosmosResponse.ServerErrorResponse
 import com.lilaceclipse.cosmos.lambda.util.RequestUtil
 import com.lilaceclipse.cosmos.lambda.util.ResponseUtil
 import io.github.oshai.kotlinlogging.KotlinLogging

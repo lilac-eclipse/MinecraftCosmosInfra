@@ -1,6 +1,5 @@
-package com.lilaceclipse.cosmos.lambda.model
+package com.lilaceclipse.cosmos.common.model
 
-import com.lilaceclipse.cosmos.common.model.ServerEntry
 import kotlinx.serialization.Serializable
 
 @Serializable

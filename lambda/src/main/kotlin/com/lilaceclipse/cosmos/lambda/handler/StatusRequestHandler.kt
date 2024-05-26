@@ -6,9 +6,9 @@ import com.amazonaws.services.ecs.AmazonECS
 import com.amazonaws.services.ecs.model.DescribeTasksRequest
 import com.amazonaws.services.ecs.model.ListTasksRequest
 import com.amazonaws.services.ecs.model.ListTasksResult
-import com.lilaceclipse.cosmos.lambda.model.CosmosRequest.StatusRequest
-import com.lilaceclipse.cosmos.lambda.model.CosmosResponse
-import com.lilaceclipse.cosmos.lambda.model.CosmosResponse.StatusResponse
+import com.lilaceclipse.cosmos.common.model.CosmosRequest.StatusRequest
+import com.lilaceclipse.cosmos.common.model.CosmosResponse
+import com.lilaceclipse.cosmos.common.model.CosmosResponse.StatusResponse
 import com.lilaceclipse.cosmos.lambda.util.EnvVarProvider
 import io.github.oshai.kotlinlogging.KotlinLogging
 import javax.inject.Inject

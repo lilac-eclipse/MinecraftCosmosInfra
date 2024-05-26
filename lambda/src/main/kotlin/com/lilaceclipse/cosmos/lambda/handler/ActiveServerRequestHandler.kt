@@ -1,8 +1,8 @@
 package com.lilaceclipse.cosmos.lambda.handler
 
-import com.lilaceclipse.cosmos.lambda.model.CosmosRequest
-import com.lilaceclipse.cosmos.lambda.model.CosmosResponse
-import com.lilaceclipse.cosmos.lambda.model.CosmosResponse.ActiveServerResponse
+import com.lilaceclipse.cosmos.common.model.CosmosRequest
+import com.lilaceclipse.cosmos.common.model.CosmosResponse
+import com.lilaceclipse.cosmos.common.model.CosmosResponse.ActiveServerResponse
 import com.lilaceclipse.cosmos.lambda.storage.DynamoStorage
 import io.github.oshai.kotlinlogging.KotlinLogging
 import javax.inject.Inject

@@ -1,9 +1,9 @@
 package com.lilaceclipse.cosmos.lambda.util
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
-import com.lilaceclipse.cosmos.lambda.model.CosmosResponse
-import com.lilaceclipse.cosmos.lambda.model.CosmosResponse.ClientErrorResponse
-import com.lilaceclipse.cosmos.lambda.model.CosmosResponse.ServerErrorResponse
+import com.lilaceclipse.cosmos.common.model.CosmosResponse
+import com.lilaceclipse.cosmos.common.model.CosmosResponse.ClientErrorResponse
+import com.lilaceclipse.cosmos.common.model.CosmosResponse.ServerErrorResponse
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
