@@ -14,6 +14,7 @@ class CosmosRequestRouter @Inject constructor(
     private val startRequestHandler: StartRequestHandler,
     private val activeServerRequestHandler: ActiveServerRequestHandler,
     private val clientVersionRequestHandler: ClientVersionRequestHandler,
+    private val modListRequestHandler: ModListRequestHandler,
     private val requestUtil: RequestUtil,
     private val responseUtil: ResponseUtil
 ) {
@@ -31,6 +32,7 @@ class CosmosRequestRouter @Inject constructor(
                 is StartRequest -> startRequestHandler.handleRequest(cosmosRequest)
                 is ActiveServerRequest -> activeServerRequestHandler.handleRequest(cosmosRequest)
                 is ClientVersionRequest -> clientVersionRequestHandler.handleRequest(cosmosRequest)
+                is ModListRequest -> modListRequestHandler.handleRequest(cosmosRequest)
             }
         } catch (e: IllegalArgumentException) {
             log.error { "Malformed request body" }

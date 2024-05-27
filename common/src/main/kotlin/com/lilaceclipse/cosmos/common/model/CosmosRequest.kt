@@ -29,6 +29,13 @@ sealed class CosmosRequest {
     ) : CosmosRequest()
 
     @Serializable
+    @SerialName("MOD_LIST")
+    data class ModListRequest(
+        val requestType: String,
+        val serverUUID: String
+    ) : CosmosRequest()
+
+    @Serializable
     @SerialName("CLIENT_VERSION")
     data class ClientVersionRequest(
         val requestType: String

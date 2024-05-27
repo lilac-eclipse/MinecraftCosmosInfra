@@ -21,6 +21,11 @@ sealed class CosmosResponse {
     ) : CosmosResponse()
 
     @Serializable
+    data class ModListResponse(
+        val modList: List<ModReference>
+    ) : CosmosResponse()
+
+    @Serializable
     data class ClientVersionResponse(
         val clientVersion: String
     ) : CosmosResponse()
