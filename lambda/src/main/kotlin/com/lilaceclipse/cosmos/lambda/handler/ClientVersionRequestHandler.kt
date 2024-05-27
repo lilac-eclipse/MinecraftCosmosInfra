@@ -1,5 +1,6 @@
 package com.lilaceclipse.cosmos.lambda.handler
 
+import com.lilaceclipse.cosmos.common.CURRENT_CLIENT_VERSION
 import com.lilaceclipse.cosmos.common.model.CosmosRequest.ClientVersionRequest
 import com.lilaceclipse.cosmos.common.model.CosmosResponse
 import com.lilaceclipse.cosmos.common.model.CosmosResponse.ClientVersionResponse
@@ -14,7 +15,7 @@ class ClientVersionRequestHandler @Inject constructor(
     fun handleRequest(request: ClientVersionRequest): CosmosResponse {
 
         return ClientVersionResponse(
-            clientVersion = "0.1.5.0"
+            clientVersion = CURRENT_CLIENT_VERSION
         )
     }
 }

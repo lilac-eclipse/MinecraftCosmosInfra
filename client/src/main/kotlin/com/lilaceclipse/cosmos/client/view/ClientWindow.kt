@@ -2,6 +2,7 @@ package com.lilaceclipse.cosmos.client.view
 
 import com.lilaceclipse.cosmos.client.model.FileUtil
 import com.lilaceclipse.cosmos.client.model.ModInstaller
+import com.lilaceclipse.cosmos.common.CURRENT_CLIENT_VERSION
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.*
 import javax.inject.Inject
@@ -10,7 +11,7 @@ import javax.swing.*
 
 class ClientWindow @Inject constructor(
     private val fileUtil: FileUtil
-) : JFrame("Cosmos Installer") {
+) : JFrame("Cosmos Installer v$CURRENT_CLIENT_VERSION") {
 
     // Model bindings
     lateinit var modInstaller: ModInstaller
