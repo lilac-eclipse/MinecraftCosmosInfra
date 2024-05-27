@@ -5,7 +5,7 @@ import dagger.Component
 import javax.inject.Singleton
 
 @Singleton
-@Component(modules = [CosmosModule::class])
+@Component(modules = [CosmosModule::class, EnvironmentModule::class])
 interface CosmosComponent {
     fun provideCosmosClient(): CosmosController
 }

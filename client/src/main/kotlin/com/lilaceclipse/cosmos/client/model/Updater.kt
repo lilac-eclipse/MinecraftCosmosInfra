@@ -3,6 +3,7 @@ package com.lilaceclipse.cosmos.client.model
 import com.lilaceclipse.cosmos.client.view.ClientWindow
 import com.lilaceclipse.cosmos.common.CURRENT_CLIENT_VERSION
 import com.lilaceclipse.cosmos.common.model.CosmosResponse
+import com.lilaceclipse.cosmos.docker.config.EnvironmentConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -16,12 +17,8 @@ import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
 
 
-// Prod endpoints are always used for simplicity
-const val UPDATE_URL = "https://fufgouqjz9.execute-api.us-west-2.amazonaws.com/prod/"
-const val DOWNLOAD_URL = "https://cosmos.lilaceclipse.com/Cosmos-Client.jar"
-
 class Updater @Inject constructor(
-
+    private val environmentConfig: EnvironmentConfig
 ) {
 
     // View bindings
@@ -50,7 +47,7 @@ class Updater @Inject constructor(
     private fun fetchLatestVersion(): String {
         val requestBody = json.encodeToString(mapOf("requestType" to "CLIENT_VERSION"))
 
-        val connection = URL(UPDATE_URL).openConnection() as HttpURLConnection
+        val connection = URL(environmentConfig.apiUrl).openConnection() as HttpURLConnection
         connection.apply {
             requestMethod = "POST"
             setRequestProperty("Content-Type", "application/json")
@@ -87,7 +84,7 @@ class Updater @Inject constructor(
         Thread {
             try {
                 val tempJarFile = File("Cosmos-Client.jar.tmp")
-                URL(DOWNLOAD_URL).openStream().use { input ->
+                URL(environmentConfig.clientDownloadUrl).openStream().use { input ->
                     FileOutputStream(tempJarFile).use { output ->
                         input.copyTo(output)
                     }
