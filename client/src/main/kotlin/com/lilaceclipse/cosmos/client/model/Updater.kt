@@ -16,7 +16,8 @@ import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
 
 
-const val UPDATE_URL = "https://xww3ls66qh.execute-api.us-west-2.amazonaws.com/prod/"
+// Prod endpoints are always used for simplicity
+const val UPDATE_URL = "https://fufgouqjz9.execute-api.us-west-2.amazonaws.com/prod/"
 const val DOWNLOAD_URL = "https://cosmos.lilaceclipse.com/Cosmos-Client.jar"
 
 class Updater @Inject constructor(
