@@ -41,33 +41,17 @@ class ClientWindow @Inject constructor(
         cosmosInstallerLabel.apply {
             font = font.deriveFont(36.0f)
             horizontalAlignment = SwingConstants.CENTER
-            icon = ImageIcon(ClientWindow::class.java.getResource("/cosmos_icon.png"))
+
+            // Load the image icon with a specified size
+            val iconSize = Dimension(64, 64)
+            val iconImage = ImageIcon(ClientWindow::class.java.getResource("/cosmos_icon.png")).image
+            val scaledImage = iconImage.getScaledInstance(iconSize.width, iconSize.height, Image.SCALE_SMOOTH)
+            icon = ImageIcon(scaledImage)
+
             text = " Cosmos Installer"
             maximumSize = Dimension(350, 64)
         }
         addComponent(cosmosInstallerLabel, 1, 0, insets = Insets(30, 0, 0, 0))
-
-        gameVersionLabel.apply {
-            font = font.deriveFont(font.style or Font.BOLD, 16.0f)
-            horizontalAlignment = SwingConstants.CENTER
-            text = "Select game version:"
-            toolTipText = ""
-            horizontalTextPosition = SwingConstants.CENTER
-            maximumSize = Dimension(300, 24)
-            minimumSize = Dimension(168, 24)
-            preferredSize = Dimension(168, 24)
-            isRequestFocusEnabled = false
-        }
-        addComponent(gameVersionLabel, 1, 1, fill = GridBagConstraints.HORIZONTAL, insets = Insets(20, 0, 0, 0))
-
-        gameVersionList.apply {
-            font = Font("Arial", Font.PLAIN, 14)
-            model = DefaultComboBoxModel(arrayOf("1.20.6"))
-            maximumSize = Dimension(168, 35)
-            minimumSize = Dimension(168, 35)
-            preferredSize = Dimension(168, 35)
-        }
-        addComponent(gameVersionList, 1, 2, insets = Insets(6, 0, 0, 0))
 
         installationDirectory.apply {
             font = font.deriveFont(font.style or Font.BOLD, 16.0f)
