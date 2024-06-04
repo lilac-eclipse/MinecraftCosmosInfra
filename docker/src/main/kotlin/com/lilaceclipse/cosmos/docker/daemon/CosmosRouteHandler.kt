@@ -1,5 +1,6 @@
 package com.lilaceclipse.cosmos.docker.daemon
 
+import com.lilaceclipse.cosmos.docker.gameserver.GameServerWrapper
 import com.lilaceclipse.cosmos.docker.gameserver.ServerStatus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -8,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import kotlinx.coroutines.withTimeoutOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
+import java.util.concurrent.atomic.AtomicInteger
 
 class CosmosRouteHandler @AssistedInject constructor(
     @Assisted private val gameServerLifecycleManager: GameServerLifecycleManager,
@@ -15,7 +17,8 @@ class CosmosRouteHandler @AssistedInject constructor(
 ) {
     private val log = KotlinLogging.logger {}
 
-    private val serverWrapper: com.lilaceclipse.cosmos.docker.gameserver.GameServerWrapper? get() = gameServerLifecycleManager.gameServerWrapper
+    private val serverWrapper: GameServerWrapper? get() = gameServerLifecycleManager.gameServerWrapper
+    private val consecutiveHealthFailures: AtomicInteger = AtomicInteger()
 
     suspend fun handleGetHealth(call: ApplicationCall) {
         log.info { "Received call to getHealth" }
@@ -30,8 +33,18 @@ class CosmosRouteHandler @AssistedInject constructor(
             withTimeoutOrNull(30000L) { serverWrapper?.executeList() }
         }
 
-        if (numPlayers == null) {
-            log.error { "List command timed out, forcing server shutdown" }
+        if (numPlayers != null) {
+            consecutiveHealthFailures.set(0)
+            log.info { "Minecraft server is healthy!" }
+            return
+        }
+
+        val failures = consecutiveHealthFailures.incrementAndGet()
+        log.warn { "List command timed out, consecutiveHealthFailures=$consecutiveHealthFailures. " +
+                "Will shutdown at $CONSECUTIVE_HEALTH_FAILURE_SHUTDOWN_THRESHOLD" }
+
+        if (failures >= CONSECUTIVE_HEALTH_FAILURE_SHUTDOWN_THRESHOLD) {
+            log.warn { "Minecraft server timed out too many times, forcing server shutdown." }
             cosmosDaemon.shutdown(true)
         }
     }
@@ -75,6 +88,10 @@ class CosmosRouteHandler @AssistedInject constructor(
             call.respondText("Op sent to server, see cloudwatch for logs")
             serverWrapper?.executeOp()
         }
+    }
+
+    companion object {
+        private const val CONSECUTIVE_HEALTH_FAILURE_SHUTDOWN_THRESHOLD: Int = 3
     }
 }
 
