@@ -24,11 +24,8 @@ class CosmosRouteHandler @AssistedInject constructor(
         log.info { "Received call to getHealth" }
         call.respondText("Healthy!")
 
-        // TODO set gameServerWrapper to something before download is complete, or update how status checking
-        //  works in route handler/task scheduler, otherwise there's a possibility that they detect null
-        //  and abort early
-        val numPlayers = if (serverWrapper?.serverStatus() == ServerStatus.STARTING) {
-            0 // Simulate 0 players online if the server is starting. This will cause shutdown after 30min
+        val numPlayers = if (serverWrapper?.serverStatus() in listOf(ServerStatus.STARTING, ServerStatus.WAITING)) {
+            0 // Simulate 0 players online if the server is starting or waiting. This will cause shutdown after 30min
         } else {
             withTimeoutOrNull(30000L) { serverWrapper?.executeList() }
         }

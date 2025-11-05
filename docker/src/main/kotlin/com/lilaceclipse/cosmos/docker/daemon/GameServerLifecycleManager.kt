@@ -37,12 +37,11 @@ class GameServerLifecycleManager @AssistedInject constructor(
         val serverEntry = dynamoStorage.getServerEntryFromDb(serverUUID.toString())
         s3KeySuffix = serverEntry.s3KeySuffix
 
+        // Create gameServerWrapper early so health checks pass
+        gameServerWrapper = gameServerFactory.create(GAME_STORAGE_DIR)
+
         s3Storage.downloadMinecraft(GAME_STORAGE_DIR, s3KeySuffix!!)
 
-        // TODO set gameServerWrapper to something before download is complete, or update how status checking
-        //  works in route handler/task scheduler, otherwise there's a possibility that they detect null
-        //  and abort early
-        gameServerWrapper = gameServerFactory.create(GAME_STORAGE_DIR)
         gameServerWrapper!!.startServer(serverEntry.launchCommand!!, serverUUID)
 
         // TODO block until server shuts down/implement auto restart
