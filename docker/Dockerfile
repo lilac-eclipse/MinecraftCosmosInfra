@@ -1,6 +1,6 @@
-FROM openjdk:17-jdk-slim
+FROM amazoncorretto:21
 
-RUN apt-get update && apt-get install -y curl
+RUN yum update -y && yum install -y curl
 RUN mkdir /app
 
 COPY docker/build/libs/ /app/
