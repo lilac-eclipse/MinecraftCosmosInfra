@@ -64,7 +64,7 @@ class MinecraftCosmosStack(
             .functionName("MinecraftCosmos-$stageSuffix")
             .code(Code.fromAsset("../lambda/build/libs/lambda-all.jar"))
             .handler("com.lilaceclipse.cosmos.lambda.MinecraftCosmosLambdaHandler")
-            .runtime(Runtime.JAVA_11)
+            .runtime(Runtime.JAVA_21)
             .memorySize(1024)
             .timeout(Duration.seconds(30))
             .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS)
@@ -232,8 +232,8 @@ class MinecraftCosmosStack(
     private fun createTaskDefinition(serverDataBucket: Bucket, serverTable: TableV2, cluster: Cluster): Pair<FargateTaskDefinition, Repository> {
         val task = FargateTaskDefinition(this, "mc-cosmos-task-$stageSuffix",
             FargateTaskDefinitionProps.builder()
-                .memoryLimitMiB(8192)
-                .cpu(2048)
+                .memoryLimitMiB(16384)
+                .cpu(4096)
                 .build()
         )
         serverDataBucket.grantReadWrite(task.taskRole)
