@@ -17,7 +17,6 @@
             <div class="px-4 py-5 my-5 text-center">
                 <img class="d-block mx-auto mb-4" src="logo.png" alt="Logo" width="100" height="100">
                 <h1 class="display-5 fw-bold">Welcome to Cosmos!</h1>
-                <button id="download-installer-btn" class="btn btn-primary mt-3">Download Installer (Beta)</button>
             </div>
         </div>
     </div>
@@ -136,7 +135,7 @@
                         .data("bs-target", "#modDownloadModal")
                         .click(function() {
                             // TODO dynamically select mods to download from server data
-                            window.open("/mccosmos-installer.zip", "_blank");
+                            window.open("/server-public-data/winter-25/cosmos-winter-25.zip", "_blank");
                             $("#modDownloadModal").modal("show");
                         });
 
@@ -145,10 +144,6 @@
                     tableBody.append(row);
                 });
             });
-
-        $("#download-installer-btn").click(function() {
-            window.open("/Cosmos-Client.jar", "_blank");
-        });
     });
 
 </script>

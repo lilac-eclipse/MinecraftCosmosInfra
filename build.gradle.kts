@@ -10,7 +10,7 @@ tasks.register("buildAll") {
     group = "cosmos"
     description = "Builds all modules"
 
-    dependsOn(":cdk:build", ":common:build", ":lambda:build", ":docker:build", ":client:build")
+    dependsOn(":cdk:build", ":common:build", ":lambda:build", ":docker:build")
 }
 
 tasks.register("deployAllProd") {
@@ -62,19 +62,6 @@ tasks.register("deployDockerBeta") {
         val imageTag = "latest"
         val repositoryName = "mc-cosmos-repo-beta"
         buildAndPushDockerImage(imageTag, repositoryName)
-    }
-}
-
-tasks.register("generateClientJar") {
-    group = "cosmos"
-    description = "Builds and pushes the Docker image to Amazon ECR"
-
-    dependsOn(":client:shadowJar")
-
-    doLast {
-        // Open the client/build/libs directory in the file explorer
-        val outputDir = project.file("client/build/libs")
-        openFileExplorer(outputDir)
     }
 }
 
